@@ -93,20 +93,20 @@ footer{color:var(--muted);font-size:.82rem}
   </header>
 
   <section class="howto">
-    <h2>Imprimer une affiche A4 en A0 sur la bâche</h2>
+    <h2>Imprimer une affiche A4 en A0</h2>
     <h3>Une seule fois sur ton PC</h3>
     <ol class="todo">
-      <li>Télécharge le réglage :<span><a class="dl" href="bache.ssf" download>Télécharger bache.ssf</a></span></li>
+      <li>Télécharge les deux réglages :<span><a class="dl" href="bache.ssf" download>bache.ssf</a> &nbsp; <a class="dl" href="adhesif.ssf" download>adhesif.ssf</a></span></li>
       <li>Ouvre un PDF dans Acrobat, puis Fichier → Imprimer → Propriétés.</li>
-      <li>Clique sur Enregistrer/supprimer… → Importer… et choisis bache.ssf.<span>Le réglage « bache » apparaît dans la liste. Ferme avec Annuler.</span></li>
+      <li>Clique sur Enregistrer/supprimer… → Importer… et choisis bache.ssf. Recommence avec adhesif.ssf.<span>Les réglages « bache » et « adhesif » apparaissent dans la liste. Ferme avec Annuler.</span></li>
     </ol>
     <h3>À chaque impression</h3>
     <ol class="todo">
-      <li>Vérifie que le rouleau de bâche est chargé et que l'imprimante est allumée.</li>
+      <li>Regarde quel rouleau est chargé dans la machine : bâche ou adhésif.<span>Le réglage choisi doit correspondre au rouleau, sinon le message « Support ne correspond pas » apparaît.</span></li>
       <li>Dans Acrobat : Fichier → Imprimer → Propriétés.</li>
-      <li>Paramètre de sélection : <b>bache</b>, puis OK.</li>
+      <li>Paramètre de sélection : <b>bache</b> ou <b>adhesif</b>, puis OK.</li>
       <li>Dans la fenêtre d'Acrobat, choisis <b>Ajuster</b>.<span>Ne coche pas « Choisir la source du papier selon le format de page PDF ».</span></li>
-      <li>Clique sur Imprimer.<span>L'affiche sort en A0 (841 × 1189 mm). Coupe la bande blanche d'environ 16 cm sur le côté.</span></li>
+      <li>Clique sur Imprimer.<span>L'affiche sort en A0 (841 × 1189 mm). Coupe la bande blanche sur le côté. Sur l'adhésif, ne touche pas le tirage pendant 30 minutes.</span></li>
     </ol>
   </section>
 
@@ -179,68 +179,37 @@ const PAPERS = [
     note:null
   },
   {
-    id:"adhesif-mat",
-    name:"Adhésif blanc mat",
-    ref:"Référence à donner",
-    status:"todo",
-    printer:[
-      ["Type de papier","Enhanced Matte Paper","Doit être identique au pilote."],
-      ["Écart du plateau","Large","Support épais avec son dorsal : la tête doit passer au-dessus."],
-      ["Face imprimée","Face vinyle / papier, jamais le dorsal"],
-      ["Avance papier","Réglage avec l'adhésif chargé"]
-    ],
-    driver:[
-      ["Source","Papier rouleau"],
-      ["Support","Enhanced Matte Paper",null,true],
-      ["Largeur du rouleau","Largeur réelle du rouleau (Obt. infos)",null,true],
-      ["Taille","Personnalisée : largeur du rouleau − 10 mm"],
-      ["Ajuster à la largeur du papier rouleau","off"],
-      ["Sans marges","off"],
-      ["Qualité","Avancé"],
-      ["Couleur","Couleur"],
-      ["Mode","EPSON Standard (sRGB)"],
-      ["Qualité","Qualité maximale - 720 × 1440 ppp",null,true],
-      ["Vitesse rapide","off"],
-      ["Détails plus fins","on"]
-    ],
-    file:[
-      ["Largeur du document","Largeur du rouleau − 10 mm"],
-      ["Résolution","150 à 300 dpi à la taille finale"],
-      ["Couleurs","RVB (sRGB)"]
-    ],
-    note:"Vérifie que cet adhésif est prévu pour les <b>encres à eau (aqueuses / pigmentaires)</b>. Un adhésif pour éco-solvant ou latex ne séchera pas sur une T7200. Laisse sécher 10 à 15 minutes avant de poser ou de plastifier."
-  },
-  {
     id:"adhesif-brillant",
-    name:"Adhésif blanc brillant ou satiné",
-    ref:"Référence à donner",
-    status:"todo",
+    name:"Adhésif blanc brillant Folex SIVC",
+    ref:"SIVC 914/20 · 914 mm × 20 m",
+    status:"ok",
     printer:[
-      ["Type de papier","Premium Semigloss Photo Paper","Utilise le Noir Photo, adapté aux surfaces brillantes."],
-      ["Écart du plateau","Large"],
-      ["Temps de séchage par passe","Augmenter un peu si l'encre bave"],
+      ["Type de papier","Premium Glossy Photo Paper","Doit être identique au pilote."],
+      ["Écart du plateau","Large","Support épais avec son dorsal papier."],
+      ["Face imprimée","Face vinyle brillante, jamais le dorsal"],
       ["Avance papier","Réglage avec l'adhésif chargé"]
     ],
     driver:[
       ["Source","Papier rouleau"],
-      ["Support","Premium Semigloss Photo Paper",null,true],
-      ["Largeur du rouleau","Largeur réelle du rouleau (Obt. infos)",null,true],
-      ["Taille","Personnalisée : largeur du rouleau − 10 mm"],
+      ["Support","Premium Glossy Photo Paper",null,true],
+      ["Largeur du rouleau","36 pouces (914 mm)",null,true],
+      ["Taille","Série A → A0"],
       ["Ajuster à la largeur du papier rouleau","off"],
       ["Sans marges","off"],
       ["Qualité","Avancé"],
       ["Couleur","Couleur"],
-      ["Mode","EPSON Standard (sRGB)"],
+      ["Mode","Présentations et graphiques","Couleurs plus vives pour les affiches."],
       ["Qualité","Qualité maximale - 720 × 1440 ppp",null,true],
       ["Vitesse rapide","off"],
-      ["Détails plus fins","on"]
+      ["Détails plus fins","on"],
+      ["Paramètre de sélection","adhesif","Enregistré sous ce nom : il suffit de le choisir."]
     ],
     file:[
-      ["Largeur du document","Largeur du rouleau − 10 mm"],
+      ["Format du PDF","A4, agrandi en A0 par Acrobat (Ajuster)"],
       ["Résolution","150 à 300 dpi à la taille finale"],
       ["Couleurs","RVB (sRGB)"]
     ],
-    note:"Vérifie que cet adhésif est prévu pour les <b>encres à eau</b>. Sur un support brillant, l'encre sèche plus lentement : ne touche pas le tirage pendant au moins 30 minutes."
+    note:"Sur ce vinyle brillant, l'encre sèche lentement : ne touche pas le tirage pendant au moins 30 minutes. Si l'encre part encore au doigt après ce délai, ce support n'est pas compatible avec les encres à eau de la T7200."
   }
 ];
 
