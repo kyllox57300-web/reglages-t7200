@@ -111,6 +111,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .p-foot:empty{padding:calc(14*var(--u))}
 
 /* Liste des produits */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#eef2f6;padding:4px;border-radius:10px}
+.modes button{all:unset;text-align:center;padding:9px 6px;border-radius:7px;font-weight:600;font-size:.86rem;cursor:pointer;color:var(--muted)}
+.modes button[aria-pressed="true"]{background:#fff;color:var(--bleu-f);box-shadow:0 1px 4px rgba(10,40,70,.12)}
+.modes button:focus-visible{outline:2px solid var(--bleu);outline-offset:1px}
 .list-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:.88rem}
 .link{all:unset;cursor:pointer;color:var(--bleu);font-weight:600;font-size:.84rem;align-self:flex-start}
 .link:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
@@ -169,6 +173,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 
     <fieldset>
       <legend>1 · Produits</legend>
+      <input type="hidden" id="mode" value="file">
+      <div class="modes" role="group" aria-label="Façon de créer les affiches">
+        <button type="button" id="mFile" aria-pressed="true">📂 Avec le fichier Excel</button>
+        <button type="button" id="mHand" aria-pressed="false">✏️ À la main</button>
+      </div>
+      <div id="fileBox">
       <label class="drop" id="drop">
         <b>📂 Glisser l'export Excel des prix ici</b>
         <small>le même fichier que pour les cuisines · il reste sur ce PC</small>
@@ -177,6 +187,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
       <div class="status" id="xstatus"></div>
       <label id="searchWrap" hidden>Chercher et ajouter des produits <small>nom, code ITM ou EAN · clique pour ajouter</small><input type="text" id="search" placeholder="ex. perceuse"></label>
       <ul class="results" id="results" hidden></ul>
+      </div>
+      <button type="button" class="btn" id="addHand" hidden>+ Nouvelle affiche</button>
       <div class="list-head"><b id="count">Affiches</b><button type="button" class="link" id="addBlank">+ Produit hors fichier</button></div>
       <ol class="sel" id="sel"></ol>
       <button type="button" class="link danger" id="clearAll">Vider la liste</button>
@@ -217,6 +229,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
       <legend id="edLegend">3 · Modifier le produit</legend>
       <label>Nom du produit<input type="text" id="name" maxlength="70"></label>
       <label>Détails <small>une ligne par info</small><textarea id="details"></textarea></label>
+      <label>Prix normal <small>avant remise · la remise de l'étape 2 s'applique dessus</small><input type="text" id="base" inputmode="decimal" placeholder="ex. 14,90"></label>
       <div class="row2">
         <label>Prix affiché<input type="text" id="price" inputmode="decimal"></label>
         <label>Ancien prix <small>barré</small><input type="text" id="old" inputmode="decimal"></label>
@@ -298,7 +311,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 
 <script>
 const $ = id => document.getElementById(id);
-const GLOBAL = ["type","custom","op","rem","round","pct","from","to","stock","layout","per","format"];
+const GLOBAL = ["mode","type","custom","op","rem","round","pct","from","to","stock","layout","per","format"];
 const KEY = "affiches-gf-v2", PKEY = "affiches-produits-v1";
 let items = [], cur = -1, products = [];
 
@@ -334,7 +347,7 @@ function prices(it, G){
 function newItem(p){
   return p
     ? {name: p.lib, details: "", ref: p.itm, unit: /\bM2\b|M²/.test(p.lib) ? "le m²" : "l'unité", eco: p.eco ? money(p.eco) : "", base: p.pv, manual: false, price: "", old: "", photo: null}
-    : {name: "Nom du produit", details: "", ref: "", unit: "l'unité", eco: "", base: null, manual: true, price: "9,99", old: "14,90", photo: null};
+    : {name: "", details: "", ref: "", unit: "l'unité", eco: "", base: null, manual: false, price: "", old: "", photo: null};
 }
 function addItem(it){ items.push(it); select(items.length - 1); }
 function select(i){ cur = i; fillEditor(); update(); const fr = $("stage").querySelector(".frame.on"); if(fr) fr.scrollIntoView({block:"nearest", behavior:"smooth"}); }
@@ -362,6 +375,7 @@ function fillEditor(){
   if(!it) return;
   const P = prices(it, g());
   $("name").value = it.name; $("details").value = it.details; $("ref").value = it.ref;
+  $("base").value = it.base != null ? money(it.base) : "";
   $("unit").value = it.unit; $("eco").value = it.eco;
   $("price").value = P.price != null ? money(P.price) : "";
   $("old").value = P.old != null ? money(P.old) : "";
@@ -370,8 +384,8 @@ function fillEditor(){
 }
 function syncEditorInfo(){
   const it = items[cur]; if(!it) return;
-  $("baseInfo").hidden = it.base == null;
-  if(it.base != null) $("baseInfo").textContent = `Prix magasin du fichier : ${money(it.base)} €` + (it.manual ? " · prix modifié à la main" : "");
+  $("baseInfo").hidden = !(it.manual && it.base != null);
+  $("baseInfo").textContent = "Prix affiché modifié à la main : la remise de l'étape 2 ne s'applique plus à ce produit.";
   $("recalc").hidden = !(it.manual && it.base != null);
 }
 ["name","details","ref","unit","eco"].forEach(id => $(id).addEventListener("input", e => {
@@ -382,6 +396,13 @@ $("unit").addEventListener("change", e => { e.stopPropagation(); const it = item
   e.stopPropagation(); const it = items[cur]; if(!it) return;
   it.manual = true; it.price = $("price").value; it.old = $("old").value; syncEditorInfo(); update();
 }));
+$("base").addEventListener("input", e => {
+  e.stopPropagation(); const it = items[cur]; if(!it) return;
+  it.base = num($("base").value); it.manual = false;
+  const P = prices(it, g());
+  $("price").value = P.price != null ? money(P.price) : ""; $("old").value = P.old != null ? money(P.old) : "";
+  syncEditorInfo(); update();
+});
 $("recalc").addEventListener("click", () => { const it = items[cur]; if(it){ it.manual = false; fillEditor(); update(); } });
 $("addBlank").addEventListener("click", () => addItem(newItem(null)));
 $("clearAll").addEventListener("click", () => {
@@ -425,8 +446,8 @@ function frameOf(poster, G){
 }
 function posterOne(it, G){
   const p = $("tplOne").content.firstElementChild.cloneNode(true);
-  p.querySelector(".p-name").textContent = it.name;
-  p.style.setProperty("--namefs", sizeFor(it.name, [[14,120],[24,100],[36,84],[50,70],[70,58]]));
+  p.querySelector(".p-name").textContent = it.name || "Nom du produit";
+  p.style.setProperty("--namefs", sizeFor(it.name || "Nom du produit", [[14,120],[24,100],[36,84],[50,70],[70,58]]));
   p.querySelector(".p-details").textContent = it.details.trim();
   p.querySelector(".p-ref").textContent = it.ref ? "Réf. " + it.ref : "";
   if(it.photo){ const im = p.querySelector(".p-photo"); im.src = it.photo; im.hidden = false; im.onload = () => { shrink(p); fit(); }; }
@@ -446,7 +467,7 @@ function posterTg(list, G){
   list.forEach(it => {
     const c = document.createElement("div"); c.className = "p-cell";
     c.style.setProperty("--cs", sc.toFixed(3));
-    const nm = document.createElement("div"); nm.className = "c-name"; nm.textContent = it.name;
+    const nm = document.createElement("div"); nm.className = "c-name"; nm.textContent = it.name || "Nom du produit";
     c.appendChild(nm);
     if(it.details.trim()){ const d = document.createElement("div"); d.className = "c-det"; d.textContent = it.details.trim(); c.appendChild(d); }
     const pb = priceBlock(prices(it, G), G, sc);
@@ -482,7 +503,7 @@ function update(){
   $("pagesize").textContent = `@page{size:${w}mm ${h}mm;margin:0}`;
   const stage = $("stage"); stage.innerHTML = "";
   if(!items.length){
-    stage.innerHTML = '<div class="empty"><b>Aucune affiche pour l\'instant</b><span>Glisse l\'export Excel à gauche, cherche un produit et clique dessus pour l\'ajouter. Tu peux en ajouter autant que tu veux.</span></div>';
+    stage.innerHTML = '<div class="empty"><b>Aucune affiche pour l\'instant</b><span>Glisse l\'export Excel à gauche et clique sur les produits pour les ajouter, ou passe en mode « À la main » pour taper le nom et le prix toi-même.</span></div>';
   } else if(G.layout === "tg"){
     for(let i = 0; i < items.length; i += G.per) stage.appendChild(posterTg(items.slice(i, i + G.per), G));
   } else {
@@ -591,8 +612,10 @@ const drop = $("drop");
 drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if(f) loadFile(f); });
 
 /* Les réglages communs changent toutes les affiches */
-$("form").addEventListener("input", () => { fillEditor(); update(); });
-$("form").addEventListener("change", () => { fillEditor(); update(); });
+// Seuls les réglages communs déclenchent ici une mise à jour générale
+const onGlobal = e => { if(!GLOBAL.includes(e.target.id)) return; fillEditor(); update(); };
+$("form").addEventListener("input", onGlobal);
+$("form").addEventListener("change", onGlobal);
 $("form").addEventListener("submit", e => e.preventDefault());
 $("print").addEventListener("click", () => window.print());
 window.addEventListener("resize", fit);
@@ -600,8 +623,20 @@ window.addEventListener("beforeprint", () => $("stage").querySelectorAll(".poste
 window.addEventListener("afterprint", fit);
 if(document.fonts) document.fonts.ready.then(() => { $("stage").querySelectorAll(".poster").forEach(shrink); fit(); });
 
+/* Deux façons de travailler : avec le fichier, ou à la main */
+function setMode(m){
+  $("mode").value = m;
+  $("mFile").setAttribute("aria-pressed", m === "file"); $("mHand").setAttribute("aria-pressed", m === "hand");
+  $("fileBox").hidden = m !== "file"; $("addHand").hidden = m !== "hand";
+  $("addBlank").hidden = m !== "file";
+}
+$("mFile").addEventListener("click", () => { setMode("file"); save(); });
+$("mHand").addEventListener("click", () => { setMode("hand"); if(!items.length) addItem(newItem(null)); else save(); setTimeout(() => $("name").focus(), 0); });
+$("addHand").addEventListener("click", () => { addItem(newItem(null)); $("name").focus(); });
+
 try{ const saved = JSON.parse(localStorage.getItem(PKEY) || "null"); if(saved && saved.list) setProducts(saved.list, saved.label + " (mémorisé)"); }catch(e){}
 load();
+setMode($("mode").value || "file");
 fillEditor();
 update();
 </script>
