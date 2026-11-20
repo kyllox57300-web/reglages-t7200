@@ -84,6 +84,11 @@ const fmt = (n, d = 2) => n.toLocaleString("fr-FR", {maximumFractionDigits: d});
 const ceil = n => Math.max(0, Math.ceil(n - 1e-9));
 
 const CALCS = {
+  simple: {title: "Combien de paquets ?", menu: "Calcul simple", desc: "Pour tous les produits au m²",
+    fields: f => [f.num("c", "Combien de m² fait un paquet ?", "m²", pnum("c", ""), "c'est marqué sur l'étiquette du produit"),
+      f.num("S", "Combien de m² avez-vous à couvrir ?", "m²", ""), f.check("marge", "Ajouter 10 % pour les coupes", true)],
+    calc: v => { if(!v.S || !v.c) return null; const s = v.S * (v.marge ? 1.1 : 1), n = ceil(s / v.c);
+      return {big: `${n} paquet${n > 1 ? "s" : ""}`, lines: [v.marge ? `${fmt(s)} m² avec 10 % de marge pour les coupes` : `${fmt(s)} m² sans marge`]}; }},
   isolant: {title: "Combien de rouleaux d'isolant ?", menu: "Isolant", desc: "Combles, murs, rampants", unit: "rouleau", unitPl: "rouleaux",
     fields: f => [f.surface("Surface à isoler"), f.num("c", "Surface d'un rouleau ou d'un paquet", "m²", pnum("c", ""), "indiquée sur l'étiquette du produit"), f.check("deux", "Deux couches croisées")],
     calc: v => { if(!v.s || !v.c) return null; const s = v.s * (v.deux ? 2 : 1) * 1.05; return {big: `${ceil(s / v.c)} ${ceil(s / v.c) > 1 ? "rouleaux" : "rouleau"}`, lines: [`${fmt(s)} m² avec 5 % de marge pour les coupes`]}; }},
@@ -177,18 +182,24 @@ function update(){
 }
 
 /* ===== Démarrage : un calculateur précis (QR en rayon) ou le menu ===== */
-const t = P("t");
-if(t && CALCS[t]){
+const t = CALCS[P("t")] ? P("t") : "simple";
+if(t){
   calc = CALCS[t];
   document.getElementById("title").textContent = calc.title;
-  document.getElementById("sub").textContent = "Indiquez vos mesures : le résultat s'affiche en bas.";
-  document.getElementById("back").hidden = false;
+  document.getElementById("sub").textContent = t === "simple" ? "Deux questions, et vous savez combien de paquets prendre." : "Indiquez vos mesures : le résultat s'affiche en bas.";
+  document.getElementById("back").hidden = t === "simple";
   document.title = calc.menu + " · Calculateur Brico Cash";
   if(P("n")){ const pr = el(`<div class="product"></div>`); pr.textContent = "Produit : " + P("n"); main.appendChild(pr); }
   const card = el(`<div class="card"><h2>Vos mesures</h2></div>`);
   calc.fields(F).forEach(x => card.appendChild(x));
   main.appendChild(card);
-  main.appendChild(el(`<p class="note">Les quantités sont arrondies au-dessus et incluent une marge pour les coupes. Vérifiez les indications du fabricant sur l'emballage.</p>`));
+  main.appendChild(el(`<p class="note">Les quantités sont arrondies au-dessus. Vérifiez les indications du fabricant sur l'emballage.</p>`));
+  if(t === "simple"){
+    main.appendChild(el(`<h2 style="margin:6px 0 0;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Calculateurs détaillés</h2>`));
+    const m = el(`<nav class="menu" aria-label="Calculateurs détaillés"></nav>`);
+    Object.entries(CALCS).filter(([k]) => k !== "simple").forEach(([k, c]) => { const a = el(`<a><b></b><span></span></a>`); a.href = "?t=" + k; a.querySelector("b").textContent = c.menu; a.querySelector("span").textContent = c.desc; m.appendChild(a); });
+    main.appendChild(m);
+  }
   main.addEventListener("input", update); main.addEventListener("change", update);
   update();
 } else {

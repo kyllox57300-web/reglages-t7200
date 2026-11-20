@@ -2382,6 +2382,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
       <legend>Nouvelle feuille</legend>
       <label>Calculateur
         <select id="type">
+          <option value="simple">Calcul simple : tous les produits au m² (1 QR pour tout le magasin)</option>
           <option value="isolant">Isolant (rouleaux)</option>
           <option value="sol">Parquet, stratifié, sol (paquets)</option>
           <option value="peinture">Peinture (pots)</option>
@@ -2435,7 +2436,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 
 <script>
 const $ = id => document.getElementById(id);
-const TITLES = {isolant: "Combien de rouleaux ?", sol: "Combien de paquets ?", peinture: "Combien de pots ?", carrelage: "Combien de cartons ?",
+const TITLES = {simple: "Combien de paquets ?", isolant: "Combien de rouleaux ?", sol: "Combien de paquets ?", peinture: "Combien de pots ?", carrelage: "Combien de cartons ?",
   plaque: "Combien de plaques ?", osb: "Combien de panneaux ?", beton: "Combien de sacs ?", m2: "Combien de colis ?"};
 const KEY = "feuilles-qr-v1";
 const BASE = new URL("../calcul/", location.href).href;
@@ -2452,7 +2453,7 @@ function urlFor(d){
   const q = new URLSearchParams({t: d.type});
   if(d.name) q.set("n", d.name);
   const n = s => String(s || "").replace(",", ".");
-  if(["isolant","sol","carrelage","m2","osb"].includes(d.type) && parseFloat(n(d.c)) > 0) q.set("c", n(d.c));
+  if(["simple","isolant","sol","carrelage","m2","osb"].includes(d.type) && parseFloat(n(d.c)) > 0) q.set("c", n(d.c));
   if(d.type === "peinture"){ if(parseFloat(n(d.r)) > 0) q.set("r", n(d.r)); if(parseFloat(n(d.v)) > 0) q.set("v", n(d.v)); }
   if(d.type === "plaque") q.set("h", d.h);
   if(d.type === "beton") q.set("w", d.w);
@@ -2460,12 +2461,12 @@ function urlFor(d){
 }
 function render(d = current(), date = today()){
   const t = d.type;
-  $("wrapC").hidden = !["isolant","sol","carrelage","m2","osb"].includes(t);
+  $("wrapC").hidden = !["simple","isolant","sol","carrelage","m2","osb"].includes(t);
   $("cHint").textContent = t === "osb" ? "en m², laisser vide pour le choix du client" : "en m², sur l'étiquette · facultatif";
   $("wrapPaint").hidden = t !== "peinture"; $("wrapH").hidden = t !== "plaque"; $("wrapW").hidden = t !== "beton";
   $("sTitle").textContent = TITLES[t];
   $("sheet").style.setProperty("--tfs", TITLES[t].length > 20 ? 9 : 10.5);
-  $("sProd").textContent = d.name;
+  $("sProd").textContent = d.name || (t === "simple" ? "Le m² du paquet est marqué sur l'étiquette" : "");
   const qr = qrcode(0, "M"); qr.addData(urlFor(d)); qr.make();
   $("sQr").innerHTML = qr.createSvgTag({cellSize: 4, margin: 0, scalable: true});
   $("sDate").textContent = "Imprimée le " + date;
