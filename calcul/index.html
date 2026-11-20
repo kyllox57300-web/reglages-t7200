@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculateurs Brico Cash</title>
+<meta name="description" content="Calculez la quantité de matériaux pour vos travaux : isolant, parquet, peinture, carrelage, plaques de plâtre, OSB, béton.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout : une colonne pensée pour le téléphone ; en-tête bleu, formulaire, résultat jaune collé en bas */
+:root{
+  --bleu:#0a74bd; --bleu-f:#075a93; --jaune:#f7b232; --jaune-c:#fff4dc;
+  --bg:#eef2f6; --surface:#fff; --fg:#17202a; --muted:#5b6673; --line:#d6dde4;
+  --ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"Archivo Black","Arial Black",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161b; --surface:#1a2129; --fg:#e7ecf1; --muted:#9aa6b2; --line:#2c3640; --jaune-c:#3a2e14; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#11161b; --surface:#1a2129; --fg:#e7ecf1; --muted:#9aa6b2; --line:#2c3640; --jaune-c:#3a2e14; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:16px;line-height:1.45}
+.top{background:var(--bleu);color:#fff;margin-top:calc(-1 * env(safe-area-inset-top,0px));padding-top:calc(env(safe-area-inset-top,0px) + 14px)}
+.top .in,.main{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top .in{padding-bottom:18px;display:flex;flex-direction:column;gap:6px}
+.brand{font-family:var(--display);font-size:1.05rem;letter-spacing:.02em}
+.brand span{color:var(--jaune)}
+.top h1{margin:0;font-family:var(--display);font-size:1.55rem;line-height:1.1;text-wrap:balance}
+.top p{margin:0;opacity:.9;font-size:.95rem}
+.top a{color:#fff;font-weight:600;font-size:.9rem;text-decoration:none;opacity:.9}
+.main{padding-block:18px 280px;display:flex;flex-direction:column;gap:14px}
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.menu a{display:flex;flex-direction:column;gap:4px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:14px;color:inherit;text-decoration:none}
+.menu a:hover,.menu a:focus-visible{border-color:var(--bleu);outline:none}
+.menu a b{font-size:1rem}
+.menu a span{color:var(--muted);font-size:.85rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.card h2{margin:0;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.product{background:var(--jaune-c);border-radius:10px;padding:10px 12px;font-weight:600}
+label{display:flex;flex-direction:column;gap:5px;font-weight:600;font-size:.92rem}
+label small{font-weight:400;color:var(--muted)}
+.unit{position:relative;display:flex;align-items:center}
+.unit input{padding-right:52px}
+.unit em{position:absolute;right:12px;font-style:normal;color:var(--muted);font-size:.9rem;pointer-events:none}
+input,select{font:inherit;font-size:17px;padding:11px 12px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);color:var(--fg);width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--bleu);outline-offset:1px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;background:var(--bg);padding:4px;border-radius:10px}
+.seg button{all:unset;text-align:center;padding:9px 4px;border-radius:7px;font-weight:600;font-size:.88rem;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--bleu-f);box-shadow:0 1px 4px rgba(10,40,70,.14)}
+.check{flex-direction:row;align-items:center;gap:10px;font-weight:500}
+.check input{width:20px;height:20px}
+.note{font-size:.85rem;color:var(--muted)}
+.result{position:fixed;left:0;right:0;bottom:0;background:var(--jaune);color:#14324a;box-shadow:0 -6px 24px rgba(0,0,0,.18);
+  padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.result .in{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:4px}
+.result .big{font-family:var(--display);font-size:1.7rem;line-height:1.1}
+.result ul{margin:2px 0 0;padding-left:18px;font-weight:600;font-size:.92rem}
+.result .small{font-size:.8rem;opacity:.85}
+.empty-res{font-weight:600}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="in">
+    <div class="brand">BRICO <span>CASH</span> · FAMECK</div>
+    <a href="./" id="back" hidden>← Tous les calculateurs</a>
+    <h1 id="title">Combien m'en faut-il ?</h1>
+    <p id="sub">Choisissez votre chantier : on calcule la quantité pour vous.</p>
+  </div>
+</div>
+
+<main class="main" id="main"></main>
+
+<div class="result" id="result" hidden><div class="in" id="resIn" aria-live="polite"></div></div>
+
+<script>
+/* ===== Calculateurs : chaque type décrit ses champs et son calcul ===== */
+const Q = new URLSearchParams(location.search);
+const P = k => Q.get(k);
+const pnum = (k, d) => { const v = parseFloat(String(P(k) ?? "").replace(",", ".")); return isNaN(v) ? d : v; };
+const fmt = (n, d = 2) => n.toLocaleString("fr-FR", {maximumFractionDigits: d});
+const ceil = n => Math.max(0, Math.ceil(n - 1e-9));
+
+const CALCS = {
+  isolant: {title: "Combien de rouleaux d'isolant ?", menu: "Isolant", desc: "Combles, murs, rampants", unit: "rouleau", unitPl: "rouleaux",
+    fields: f => [f.surface("Surface à isoler"), f.num("c", "Surface d'un rouleau ou d'un paquet", "m²", pnum("c", ""), "indiquée sur l'étiquette du produit"), f.check("deux", "Deux couches croisées")],
+    calc: v => { if(!v.s || !v.c) return null; const s = v.s * (v.deux ? 2 : 1) * 1.05; return {big: `${ceil(s / v.c)} ${ceil(s / v.c) > 1 ? "rouleaux" : "rouleau"}`, lines: [`${fmt(s)} m² avec 5 % de marge pour les coupes`]}; }},
+  sol: {title: "Combien de paquets de sol ?", menu: "Parquet, stratifié, sol", desc: "Pièce, plinthes, sous-couche",
+    fields: f => [f.surface("Surface de la pièce", true), f.num("c", "Surface d'un paquet", "m²", pnum("c", ""), "indiquée sur le paquet"),
+      f.seg("pose", "Pose", [["5", "Droite"], ["10", "Diagonale"], ["15", "Bâton rompu"]]), f.check("plinthe", "Calculer les plinthes"), f.check("sc", "Calculer la sous-couche")],
+    calc: v => { if(!v.s || !v.c) return null; const m = 1 + (+v.pose || 5) / 100, s = v.s * m, n = ceil(s / v.c), L = [`${fmt(s)} m² avec ${v.pose || 5} % de marge pour les coupes`];
+      if(v.plinthe && v.per) L.push(`Plinthes : ${ceil(v.per / 2.4)} de 2,40 m (${fmt(v.per)} m de tour, sans déduire les portes)`);
+      if(v.sc) L.push(`Sous-couche : ${fmt(v.s * 1.05)} m², soit ${ceil(v.s * 1.05 / 15)} rouleau(x) de 15 m²`);
+      return {big: `${n} paquet${n > 1 ? "s" : ""}`, lines: L}; }},
+  peinture: {title: "Combien de pots de peinture ?", menu: "Peinture", desc: "Murs et plafond",
+    fields: f => [f.room(), f.num("hm", "Hauteur sous plafond", "m", 2.5), f.row(f.num("portes", "Portes", "", 1), f.num("fen", "Fenêtres", "", 1)),
+      f.check("plafond", "Peindre aussi le plafond"), f.seg("couches", "Nombre de couches", [["1", "1"], ["2", "2"], ["3", "3"]], "2"),
+      f.row(f.num("r", "Rendement", "m²/L", pnum("r", 10), "sur le pot"), f.num("v", "Contenance du pot", "L", pnum("v", 2.5)))],
+    calc: v => { if(!v.per || !v.hm || !v.r || !v.v) return null;
+      let murs = v.per * v.hm - (v.portes || 0) * 1.6 - (v.fen || 0) * 1.5; murs = Math.max(murs, 0);
+      const surf = murs + (v.plafond ? v.s || 0 : 0), litres = surf * (+v.couches || 2) / v.r, n = ceil(litres / v.v);
+      return {big: `${n} pot${n > 1 ? "s" : ""} de ${fmt(v.v)} L`, lines: [`${fmt(surf, 1)} m² à peindre × ${v.couches || 2} couche(s) = ${fmt(litres, 1)} L`]}; }},
+  carrelage: {title: "Combien de cartons de carrelage ?", menu: "Carrelage, faïence", desc: "Avec colle et joint",
+    fields: f => [f.surface("Surface à carreler"), f.num("c", "Surface d'un carton", "m²", pnum("c", ""), "indiquée sur le carton"),
+      f.seg("pose", "Pose", [["10", "Droite"], ["15", "Diagonale"]]), f.check("colle", "Calculer la colle et le joint", true)],
+    calc: v => { if(!v.s || !v.c) return null; const m = 1 + (+v.pose || 10) / 100, s = v.s * m, n = ceil(s / v.c), L = [`${fmt(s)} m² avec ${v.pose || 10} % de marge pour les coupes`];
+      if(v.colle){ L.push(`Colle : environ ${ceil(v.s * 5 / 25)} sac(s) de 25 kg (5 kg/m²)`); L.push(`Joint : environ ${ceil(v.s * 0.5 / 5)} sac(s) de 5 kg`); }
+      return {big: `${n} carton${n > 1 ? "s" : ""}`, lines: L}; }},
+  plaque: {title: "Combien de plaques de plâtre ?", menu: "Plaques de plâtre BA13", desc: "Cloison ou doublage, avec ossature",
+    fields: f => [f.seg("type", "Ouvrage", [["2", "Cloison (2 faces)"], ["1", "Doublage (1 face)"]], "2"),
+      f.row(f.num("lm", "Longueur du mur", "m", ""), f.num("hm", "Hauteur", "m", 2.5)),
+      f.select("hp", "Longueur des plaques (largeur 1,20 m)", [["2.5", "2,50 m"], ["2.6", "2,60 m"], ["2.7", "2,70 m"], ["2.8", "2,80 m"], ["3", "3,00 m"]], P("h") || "2.5")],
+    calc: v => { if(!v.lm || !v.hm) return null; const faces = +v.type || 2, hp = +v.hp || 2.5;
+      const parHauteur = ceil(v.hm / hp), parLong = ceil(v.lm / 1.2), n = ceil(parLong * parHauteur * faces * 1.05);
+      const surf = v.lm * v.hm * faces, mont = ceil(v.lm / 0.6) + 1, rails = ceil(2 * v.lm / 3);
+      return {big: `${n} plaque${n > 1 ? "s" : ""}`, lines: [`Montants : ${mont} (un tous les 60 cm, de ${fmt(v.hm)} m)`, `Rails : ${rails} de 3 m`,
+        `Vis : environ ${ceil(surf * 12 / 50) * 50}`, `Bande : environ ${ceil(surf * 1.3)} m · Enduit : environ ${ceil(surf * 0.35)} kg`]}; }},
+  osb: {title: "Combien de panneaux ?", menu: "OSB, panneaux", desc: "Sol, mur, plancher",
+    fields: f => [f.surface("Surface à couvrir"), f.select("c", "Format du panneau", [["3.125", "2,50 × 1,25 m (3,13 m²)"], ["1.6875", "2,50 × 0,675 m rainuré (1,69 m²)"], ["2.9768", "2,44 × 1,22 m (2,98 m²)"], ["autre", "Autre format…"]], P("c") || "3.125"),
+      f.num("cx", "Surface d'un panneau", "m²", "", "si autre format")],
+    calc: v => { const c = v.c === "autre" || isNaN(+v.c) ? v.cx : +v.c; if(!v.s || !c) return null; const s = v.s * 1.1, n = ceil(s / c);
+      return {big: `${n} panneau${n > 1 ? "x" : ""}`, lines: [`${fmt(s)} m² avec 10 % de marge pour les coupes`]}; }},
+  beton: {title: "Combien de sacs de béton ?", menu: "Béton", desc: "Dalle, plot, fondation",
+    fields: f => [f.row(f.num("lm", "Longueur", "m", ""), f.num("la", "Largeur", "m", "")), f.num("ep", "Épaisseur", "cm", 10),
+      f.select("w", "Poids du sac", [["25", "25 kg"], ["35", "35 kg"]], String(pnum("w", 35)))],
+    calc: v => { if(!v.lm || !v.la || !v.ep) return null; const vol = v.lm * v.la * v.ep / 100, n = ceil(vol * 2300 / (+v.w || 35) * 1.05);
+      return {big: `${n} sac${n > 1 ? "s" : ""} de ${v.w || 35} kg`, lines: [`Volume : ${fmt(vol, 3)} m³ (+5 % de marge)`]}; }},
+  m2: {title: "Combien de colis ?", menu: "Autre produit au m²", desc: "Lambris, dalles, gazon…",
+    fields: f => [f.surface("Surface à couvrir"), f.num("c", "Surface d'un colis", "m²", pnum("c", ""), "indiquée sur l'étiquette"),
+      f.seg("pose", "Marge de coupe", [["5", "5 %"], ["10", "10 %"], ["15", "15 %"]], "10")],
+    calc: v => { if(!v.s || !v.c) return null; const s = v.s * (1 + (+v.pose || 10) / 100), n = ceil(s / v.c);
+      return {big: `${n} colis`, lines: [`${fmt(s)} m² avec ${v.pose || 10} % de marge`]}; }}
+};
+
+/* ===== Construction des champs ===== */
+const main = document.getElementById("main"), vals = {};
+function el(html){ const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; }
+const F = {
+  num(id, label, unit, def, hint){ const w = el(`<label>${label}${hint ? ` <small>${hint}</small>` : ""}<span class="unit"><input type="text" inputmode="decimal" id="f_${id}" autocomplete="off"><em>${unit}</em></span></label>`);
+    const i = w.querySelector("input"); if(def !== "" && def != null) i.value = String(def).replace(".", ","); return w; },
+  check(id, label, def){ const w = el(`<label class="check"><input type="checkbox" id="f_${id}"> ${label}</label>`); w.querySelector("input").checked = !!def; return w; },
+  seg(id, label, opts, def){ const w = el(`<div><div style="font-weight:600;font-size:.92rem;margin-bottom:5px">${label}</div><div class="seg" role="group" aria-label="${label}"></div><input type="hidden" id="f_${id}"></div>`);
+    const box = w.querySelector(".seg"), hid = w.querySelector("input"); hid.value = def || opts[0][0];
+    opts.forEach(([v, t]) => { const b = el(`<button type="button">${t}</button>`); b.setAttribute("aria-pressed", v === hid.value);
+      b.addEventListener("click", () => { hid.value = v; box.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); update(); }); box.appendChild(b); });
+    return w; },
+  select(id, label, opts, def){ const w = el(`<label>${label}<select id="f_${id}"></select></label>`), s = w.querySelector("select");
+    opts.forEach(([v, t]) => s.appendChild(new Option(t, v))); if(def) s.value = def; return w; },
+  row(a, b){ const w = el(`<div class="row2"></div>`); w.append(a, b); return w; },
+  surface(label, withPer){ const w = el(`<div class="card" style="padding:0;border:0;gap:10px"></div>`);
+    w.append(F.seg("mode", label, [["dim", "Longueur × largeur"], ["m2", "Je connais les m²"]], "dim"));
+    const dims = F.row(F.num("L", "Longueur", "m", ""), F.num("l", "Largeur", "m", "")); dims.id = "dimRow";
+    const m2 = F.num("S", "Surface", "m²", ""); m2.id = "m2Row";
+    w.append(dims, m2); if(withPer) w.dataset.per = "1"; return w; },
+  room(){ const w = el(`<div class="row2"></div>`); w.append(F.num("L", "Longueur de la pièce", "m", ""), F.num("l", "Largeur de la pièce", "m", "")); return w; }
+};
+
+function read(){
+  const v = {}, num = id => { const e = document.getElementById("f_" + id); if(!e) return undefined; const n = parseFloat(e.value.replace(/\s/g, "").replace(",", ".")); return isNaN(n) ? 0 : n; };
+  main.querySelectorAll("[id^=f_]").forEach(e => { const k = e.id.slice(2); v[k] = e.type === "checkbox" ? e.checked : (e.tagName === "SELECT" || e.type === "hidden") ? e.value : num(k); });
+  const mode = v.mode || "dim";
+  if(document.getElementById("dimRow")){ document.getElementById("dimRow").hidden = mode !== "dim"; document.getElementById("m2Row").hidden = mode !== "m2"; }
+  if(v.L !== undefined){ v.s = mode === "m2" ? v.S : v.L * v.l; v.per = mode === "m2" ? 0 : 2 * (v.L + v.l); }
+  return v;
+}
+let calc = null;
+function update(){
+  if(!calc) return;
+  const r = calc.calc(read()), box = document.getElementById("resIn");
+  document.getElementById("result").hidden = false;
+  box.innerHTML = r
+    ? `<div class="small">Il vous faut environ</div><div class="big"></div><ul></ul><div class="small">Estimation indicative · un vendeur peut vous conseiller</div>`
+    : `<div class="empty-res">Remplissez les champs pour voir le résultat</div>`;
+  if(r){ box.querySelector(".big").textContent = r.big; const ul = box.querySelector("ul"); r.lines.forEach(t => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); }); }
+}
+
+/* ===== Démarrage : un calculateur précis (QR en rayon) ou le menu ===== */
+const t = P("t");
+if(t && CALCS[t]){
+  calc = CALCS[t];
+  document.getElementById("title").textContent = calc.title;
+  document.getElementById("sub").textContent = "Indiquez vos mesures : le résultat s'affiche en bas.";
+  document.getElementById("back").hidden = false;
+  document.title = calc.menu + " · Calculateur Brico Cash";
+  if(P("n")){ const pr = el(`<div class="product"></div>`); pr.textContent = "Produit : " + P("n"); main.appendChild(pr); }
+  const card = el(`<div class="card"><h2>Vos mesures</h2></div>`);
+  calc.fields(F).forEach(x => card.appendChild(x));
+  main.appendChild(card);
+  main.appendChild(el(`<p class="note">Les quantités sont arrondies au-dessus et incluent une marge pour les coupes. Vérifiez les indications du fabricant sur l'emballage.</p>`));
+  main.addEventListener("input", update); main.addEventListener("change", update);
+  update();
+} else {
+  const m = el(`<nav class="menu" aria-label="Calculateurs"></nav>`);
+  Object.entries(CALCS).forEach(([k, c]) => { const a = el(`<a><b></b><span></span></a>`); a.href = "?t=" + k; a.querySelector("b").textContent = c.menu; a.querySelector("span").textContent = c.desc; m.appendChild(a); });
+  main.appendChild(m);
+  main.style.paddingBottom = "40px";
+}
+</script>
+</body>
+</html>
