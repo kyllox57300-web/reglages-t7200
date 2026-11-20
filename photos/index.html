@@ -20,7 +20,7 @@ html,body{margin:0}
 [hidden]{display:none!important}
 body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:15px;line-height:1.45}
 .app{max-width:1100px;margin:0 auto;padding-block:16px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
-  display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:24px;align-items:start}
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,440px);gap:24px;align-items:start}
 header{grid-column:1/-1;display:flex;flex-direction:column;gap:2px}
 header a{color:var(--bleu);text-decoration:none;font-weight:600;font-size:.88rem}
 header h1{margin:4px 0 0;font-size:1.4rem}
@@ -40,6 +40,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .btn:disabled{opacity:.5;cursor:default}
 .pick{display:flex;flex-direction:column;align-items:center;gap:2px;border:2px dashed var(--bleu);border-radius:10px;padding:18px 12px;cursor:pointer;text-align:center;color:var(--bleu-f)}
 .pick small{color:var(--muted);font-weight:400}
+.pick.over{background:rgba(10,116,189,.08)}
 .thumbs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
 .thumbs button{all:unset;flex:none;width:58px;height:58px;border-radius:8px;overflow:hidden;cursor:pointer;outline:3px solid transparent;outline-offset:1px;position:relative}
 .thumbs button.on{outline-color:var(--bleu)}
@@ -69,7 +70,7 @@ canvas#cv{width:100%;max-width:520px;height:auto;max-height:72vh;object-fit:cont
   <header>
     <a href="../">← Tous les outils</a>
     <h1>Photos Facebook</h1>
-    <p>Prends ta photo en rayon : l'outil ajoute le logo et une étiquette, puis tu l'enregistres pour la publier avec Artur'in. Les photos ne quittent pas ton appareil.</p>
+    <p>Ta photo du rayon avec le logo et une étiquette, prête à publier avec Artur'in. Marche sur PC et sur téléphone. Les photos ne quittent pas ton appareil.</p>
   </header>
 
   <div class="view">
@@ -86,7 +87,7 @@ canvas#cv{width:100%;max-width:520px;height:auto;max-height:72vh;object-fit:cont
   <div class="side">
     <fieldset>
       <legend>1 · Photos</legend>
-      <label class="pick"><b>📸 Prendre ou choisir des photos</b><small>tu peux en choisir plusieurs</small><input type="file" id="files" accept="image/*" multiple hidden></label>
+      <label class="pick" id="pickZone"><b id="pickTitle">📸 Prendre ou choisir des photos</b><small id="pickSub">tu peux en choisir plusieurs</small><input type="file" id="files" accept="image/*" multiple hidden></label>
       <div class="thumbs" id="thumbs"></div>
       <button type="button" class="btn ghost" id="remove" hidden>Retirer cette photo</button>
     </fieldset>
@@ -155,16 +156,23 @@ $("custom").addEventListener("input", () => setTag($("custom").value.trim().toUp
 $("allSame").addEventListener("change", () => { prefs.allSame = $("allSame").checked; savePrefs(); });
 
 /* ===== Photos ===== */
-$("files").addEventListener("change", async e => {
-  const files = [...e.target.files]; e.target.value = "";
+$("files").addEventListener("change", e => { const files = [...e.target.files]; e.target.value = ""; addFiles(files); });
+async function addFiles(files){
+  files = files.filter(f => f.type.startsWith("image/"));
+  if(!files.length) return;
+  const first = photos.length;
   for(const f of files){
     const url = URL.createObjectURL(f);
     const img = new Image();
     try{ img.src = url; await img.decode(); }catch(err){ $("status").className = "status err"; $("status").textContent = `« ${f.name} » n'a pas pu être ouverte.`; continue; }
     photos.push({img, url, tag: prefs.tag, phrase: "", price: "", unit: "", zoom: 1, ox: 0, oy: 0});
   }
-  if(photos.length){ select(photos.length - files.length >= 0 ? photos.length - files.length : 0); }
-});
+  if(photos.length > first) select(first);
+}
+const zone = $("pickZone");
+["dragenter","dragover"].forEach(t => zone.addEventListener(t, e => { e.preventDefault(); zone.classList.add("over"); }));
+["dragleave","drop"].forEach(t => zone.addEventListener(t, e => { e.preventDefault(); zone.classList.remove("over"); }));
+zone.addEventListener("drop", e => addFiles([...e.dataTransfer.files]));
 function select(i){
   cur = i; const p = photos[cur];
   $("phrase").value = p ? p.phrase : ""; $("price").value = p ? p.price : ""; $("unit").value = p ? p.unit : "";
@@ -308,20 +316,55 @@ async function exportAll(){
     cache.set(p, new File([blob], name, {type: "image/jpeg"}));
   }
 }
+/* Téléphone : partage (Enregistrer l'image). PC : enregistrement dans un dossier choisi. */
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
+if(!isMobile){
+  $("pickTitle").textContent = "📂 Choisir des photos ou les glisser ici";
+  $("pickSub").textContent = "tu peux en mettre plusieurs d'un coup";
+  $("hint").textContent = "Fais glisser la photo avec la souris pour la recadrer";
+}
+function downloadAll(files){
+  for(const f of files){
+    const url = URL.createObjectURL(f), a = document.createElement("a");
+    a.href = url; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+}
 $("share").addEventListener("click", async () => {
   const st = $("status"); st.className = "status";
-  if(photos.some(p => !cache.has(p))) await exportAll();
-  const files = photos.map(p => cache.get(p));
   try{
-    if(navigator.canShare && navigator.canShare({files})){
-      await navigator.share({files});
-      st.textContent = "C'est fait. Choisis « Enregistrer l'image » pour la retrouver dans Photos, puis dans Artur'in.";
-    } else {
-      for(const f of files){
-        const url = URL.createObjectURL(f), a = document.createElement("a");
-        a.href = url; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
+    if(isMobile && navigator.canShare){
+      if(photos.some(p => !cache.has(p))) await exportAll();
+      const files = photos.map(p => cache.get(p));
+      if(navigator.canShare({files})){
+        await navigator.share({files});
+        st.textContent = "C'est fait. Choisis « Enregistrer l'image » pour la retrouver dans Photos.";
+        return;
       }
+    }
+    // PC : on demande d'abord où enregistrer (le navigateur l'exige au moment du clic)
+    let dir = null, handle = null;
+    if(photos.length > 1 && window.showDirectoryPicker){
+      try{ dir = await window.showDirectoryPicker({id: "photos-fb", mode: "readwrite", startIn: "desktop"}); }
+      catch(e){ if(e.name === "AbortError"){ st.textContent = "Enregistrement annulé."; return; } }
+    } else if(photos.length === 1 && window.showSaveFilePicker){
+      try{ handle = await window.showSaveFilePicker({id: "photos-fb", startIn: "desktop", suggestedName: (cache.get(photos[0]) || {name: "bricocash-photo.jpg"}).name, types: [{description: "Image JPEG", accept: {"image/jpeg": [".jpg"]}}]}); }
+      catch(e){ if(e.name === "AbortError"){ st.textContent = "Enregistrement annulé."; return; } }
+    }
+    if(photos.some(p => !cache.has(p))) await exportAll();
+    const files = photos.map(p => cache.get(p));
+    if(dir){
+      const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
+      for(const f of files){
+        const fh = await dir.getFileHandle(f.name.replace(/\.jpg$/, `-${stamp}.jpg`), {create: true});
+        const w = await fh.createWritable(); await w.write(f); await w.close();
+      }
+      st.textContent = `${files.length} photos enregistrées dans le dossier « ${dir.name} ».`;
+    } else if(handle){
+      const w = await handle.createWritable(); await w.write(files[0]); await w.close();
+      st.textContent = `Photo enregistrée : ${handle.name}`;
+    } else {
+      downloadAll(files);
       st.textContent = files.length > 1 ? `${files.length} photos enregistrées dans Téléchargements.` : "Photo enregistrée dans Téléchargements.";
     }
   }catch(e){
