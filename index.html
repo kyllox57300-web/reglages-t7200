@@ -76,6 +76,11 @@ footer{color:var(--muted);font-size:.82rem}
   .step h2{flex-wrap:wrap}
   .step h2 .where{margin-left:0;width:100%}
 }
+.howto{background:var(--surface);border:1.5px solid var(--accent);border-radius:8px;overflow:hidden}
+.howto h2{margin:0;font-size:1.1rem;padding:14px 18px;background:var(--accent-soft)}
+.howto h3{margin:0;padding:14px 18px 0;font-size:.95rem}
+.dl{display:inline-block;margin-top:6px;background:var(--accent);color:var(--surface);text-decoration:none;font-weight:600;padding:8px 14px;border-radius:6px}
+.dl:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -86,6 +91,24 @@ footer{color:var(--muted);font-size:.82rem}
     <h1>Réglages Epson SureColor T7200</h1>
     <p>Choisis le support chargé dans la machine : la fiche te donne, dans l'ordre, ce qu'il faut régler sur l'imprimante, dans le pilote Windows et dans ton fichier.</p>
   </header>
+
+  <section class="howto">
+    <h2>Imprimer une affiche A4 en A0 sur la bâche</h2>
+    <h3>Une seule fois sur ton PC</h3>
+    <ol class="todo">
+      <li>Télécharge le réglage :<span><a class="dl" href="bache.ssf" download>Télécharger bache.ssf</a></span></li>
+      <li>Ouvre un PDF dans Acrobat, puis Fichier → Imprimer → Propriétés.</li>
+      <li>Clique sur Enregistrer/supprimer… → Importer… et choisis bache.ssf.<span>Le réglage « bache » apparaît dans la liste. Ferme avec Annuler.</span></li>
+    </ol>
+    <h3>À chaque impression</h3>
+    <ol class="todo">
+      <li>Vérifie que le rouleau de bâche est chargé et que l'imprimante est allumée.</li>
+      <li>Dans Acrobat : Fichier → Imprimer → Propriétés.</li>
+      <li>Paramètre de sélection : <b>bache</b>, puis OK.</li>
+      <li>Dans la fenêtre d'Acrobat, choisis <b>Ajuster</b>.<span>Ne coche pas « Choisir la source du papier selon le format de page PDF ».</span></li>
+      <li>Clique sur Imprimer.<span>L'affiche sort en A0 (841 × 1189 mm). Coupe la bande blanche d'environ 16 cm sur le côté.</span></li>
+    </ol>
+  </section>
 
   <section aria-labelledby="pick">
     <div class="label" id="pick" style="margin-bottom:10px">Quel support est chargé ?</div>
@@ -136,8 +159,8 @@ const PAPERS = [
       ["Source","Papier rouleau"],
       ["Support","Enhanced Matte Paper",null,true],
       ["Largeur du rouleau","1000 mm",null,true],
-      ["Taille","Bache 1000 (personnalisée, 990 mm de large)","Créer via le bouton Personnalisée… si elle n'existe pas."],
-      ["Ajuster à la largeur du papier rouleau","off","Décoché si le fichier fait déjà 990 mm de large."],
+      ["Taille","Série A → A0","Taille standard : le réglage peut ainsi être exporté."],
+      ["Ajuster à la largeur du papier rouleau","off","Sinon l'affiche est agrandie à toute la largeur."],
       ["Sans marges","off","Risque de salir le plateau sur l'intissé."],
       ["Qualité","Avancé"],
       ["Couleur","Couleur"],
@@ -145,10 +168,11 @@ const PAPERS = [
       ["Qualité","Qualité maximale - 720 × 1440 ppp",null,true],
       ["Vitesse rapide","off","Plus net, moins de bandes."],
       ["Contour lissé","off","À cocher seulement pour une image pixelisée."],
-      ["Détails plus fins","on","Textes et contours plus nets."]
+      ["Détails plus fins","on","Textes et contours plus nets."],
+      ["Paramètre de sélection","bache","Enregistré sous ce nom : il suffit de le choisir."]
     ],
     file:[
-      ["Largeur du document","990 mm"],
+      ["Format du PDF","A4, agrandi en A0 par Acrobat (Ajuster)"],
       ["Résolution","150 à 300 dpi à la taille finale"],
       ["Couleurs","RVB (sRGB)"]
     ],
