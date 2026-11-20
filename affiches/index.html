@@ -1092,6 +1092,12 @@ async function makePdf(){
   }
 }
 $("pdf").addEventListener("click", makePdf);
+// Sur téléphone ou tablette, l'impression directe ignore le format : seul le PDF est fiable
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
+if(isMobile){
+  $("print").hidden = true;
+  $("pdfStatus").textContent = "Sur téléphone, enregistre en PDF puis envoie-le sur le PC pour l'imprimer.";
+}
 window.addEventListener("resize", fit);
 window.addEventListener("beforeprint", () => $("stage").querySelectorAll(".poster").forEach(p => p.style.transform = "none"));
 window.addEventListener("afterprint", fit);
