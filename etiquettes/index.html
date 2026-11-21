@@ -96,6 +96,9 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .lab .img img{max-width:100%;max-height:100%;object-fit:contain}
 .lab.noimg .lab-in{grid-template-columns:minmax(0,1fr)}
 .lab.noimg .img{display:none}
+.lab.noimg .nm{font-size:calc(var(--nfs) * 1.6 * var(--k,1))}
+.lab.noimg .big{font-size:calc(var(--bfs) * 1.75 * var(--k,1))}
+.lab.noimg .txt{gap:calc(var(--tgap) * 1.5)}
 .lab .txt{display:flex;flex-direction:column;justify-content:center;gap:var(--tgap);min-width:0;height:100%;overflow:hidden;color:#fff;text-align:center}
 .lab .nm{font-family:"Archivo",Arial,sans-serif;font-weight:800;text-transform:uppercase;font-size:calc(var(--nfs) * var(--k,1));line-height:1.12;overflow-wrap:anywhere;text-wrap:balance}
 .lab .big{font-family:var(--display);font-size:calc(var(--bfs) * var(--k,1));line-height:1;white-space:nowrap}
