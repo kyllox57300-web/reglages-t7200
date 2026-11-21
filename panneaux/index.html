@@ -456,6 +456,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .tpls button span.e{font-size:1.2rem;flex:none}
 .tpls button[aria-pressed="true"]{border-color:var(--bleu);background:#eef5fb;color:var(--bleu-f)}
 .tpls button:focus-visible{outline:2px solid var(--bleu);outline-offset:1px}
+.tpls h3{grid-column:1/-1;margin:6px 0 0;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tpls h3:first-child{margin-top:0}
+.tpls .mine{position:relative;padding-right:26px}
+.tpls .mine .x{position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:.8rem;color:var(--muted);padding:2px 5px;border-radius:4px}
+.tpls .mine .x:hover{color:var(--rouge)}
 .btn{font:inherit;font-weight:700;border:0;border-radius:8px;padding:12px 16px;cursor:pointer;background:var(--bleu);color:#fff}
 .btn.ghost{background:transparent;color:var(--bleu);border:1.5px solid var(--bleu);padding:10px 12px;font-weight:600}
 .btn:disabled{opacity:.5;cursor:default}
@@ -519,6 +524,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
         <label id="date2Wrap" hidden>Jusqu'au<input type="date" id="date2"></label>
       </div>
       <label>Image<select id="emo"></select></label>
+      <label>Bas du panneau<input type="text" id="foot" maxlength="70"></label>
+      <button type="button" class="btn ghost" id="saveTpl">⭐ Enregistrer comme modèle</button>
+      <div class="status" id="tplStatus" role="status"></div>
       <button type="button" class="link" id="reset">↺ Remettre le texte d'origine du modèle</button>
     </fieldset>
 
@@ -607,21 +615,52 @@ const TPL = [
 let tpl = TPL[0];
 
 EMOS.forEach(([e, n]) => $("emo").appendChild(new Option(e ? `${e}  ${n}` : n, e)));
+/* Menu rangé par catégories, avec « Mes modèles » en premier (mémorisés sur ce PC) */
+const GROUPS = [["Magasin", ["rupture","travaux","demenage","arrivage","retire","finoffre","erratum","rappel"]],
+  ["Caisses", ["cbonly","especes","express","cheque","cb","caisse"]],
+  ["Services", ["livraison","location"]],
+  ["Infos", ["fermeture","horaires","panne","recrute","libre"]]];
+const MKEY = "panneaux-mes-modeles-v1";
+let mine = [];
+try{ mine = JSON.parse(localStorage.getItem(MKEY) || "[]"); }catch(e){}
+const storeMine = () => { try{ localStorage.setItem(MKEY, JSON.stringify(mine)); }catch(e){} };
+function tplButton(t, isMine){
+  const b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-pressed", t === tpl);
+  b.innerHTML = `<span class="e"></span><span></span>`; b.querySelector(".e").textContent = t.e || "⭐"; b.children[1].textContent = t.name;
+  b.addEventListener("click", e => { if(e.target.classList.contains("x")) return; tpl = t; fillTpl(); drawTpls(); render(); });
+  if(isMine){
+    b.classList.add("mine");
+    const x = document.createElement("span"); x.className = "x"; x.textContent = "✕"; x.title = "Supprimer ce modèle"; x.setAttribute("role", "button");
+    x.addEventListener("click", () => {
+      if(x.dataset.c !== "1"){ x.dataset.c = "1"; x.textContent = "Suppr. ?"; return; }
+      mine = mine.filter(m => m !== t); storeMine(); if(tpl === t) tpl = TPL[0]; fillTpl(); drawTpls(); render();
+    });
+    b.appendChild(x);
+  }
+  return b;
+}
 function drawTpls(){
   const box = $("tpls"); box.innerHTML = "";
-  TPL.forEach(t => {
-    const b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-pressed", t === tpl);
-    b.innerHTML = `<span class="e"></span><span></span>`; b.querySelector(".e").textContent = t.e; b.lastChild.textContent = t.name;
-    b.addEventListener("click", () => { tpl = t; fillTpl(); drawTpls(); render(); });
-    box.appendChild(b);
-  });
+  const head = t => { const h = document.createElement("h3"); h.textContent = t; box.appendChild(h); };
+  if(mine.length){ head("⭐ Mes modèles"); mine.forEach(t => box.appendChild(tplButton(t, true))); }
+  GROUPS.forEach(([g, ids]) => { head(g); ids.forEach(id => { const t = TPL.find(x => x.id === id); if(t) box.appendChild(tplButton(t, false)); }); });
 }
+$("saveTpl").addEventListener("click", () => {
+  const name = ($("title").value.trim() || "Mon panneau").slice(0, 40);
+  const m = {id: "mine-" + Date.now(), e: $("emo").value, name, title: $("title").value, text: $("text").value, detail: $("detail").value,
+    detailLabel: tpl.detailLabel, dateLabel: tpl.dateLabel, dp: tpl.dp, date2: tpl.date2, tone: tpl.tone, foot: $("foot").value};
+  const i = mine.findIndex(x => x.name === name);
+  if(i >= 0) mine[i] = m; else mine.unshift(m);
+  storeMine(); tpl = m; drawTpls();
+  $("tplStatus").textContent = `Modèle « ${name} » enregistré : il est en haut du menu, sur ce PC.`;
+});
 function fillTpl(){
   $("title").value = tpl.title; $("text").value = tpl.text; $("detail").value = tpl.detail || ""; $("emo").value = tpl.e;
   $("date").value = ""; $("date2").value = "";
   $("detailLabel").textContent = tpl.detailLabel || "Précision (facultatif)";
   $("dateWrap").hidden = !tpl.dateLabel; $("dateLabel").textContent = tpl.dateLabel || "Date";
   $("date2Wrap").hidden = !tpl.date2;
+  $("foot").value = tpl.foot || "";
 }
 const fr = v => { if(!v) return ""; const d = new Date(v + "T12:00"); return d.toLocaleDateString("fr-FR", {weekday: "long", day: "numeric", month: "long"}); };
 function detailText(){
@@ -652,7 +691,7 @@ function render(){
   $("gEmo").textContent = $("emo").value; $("gEmo").hidden = !$("emo").value;
   $("gText").textContent = $("text").value.trim();
   $("gDetail").textContent = detailText();
-  $("gFoot").textContent = tpl.foot;
+  $("gFoot").textContent = $("foot").value.trim();
   s.classList.toggle("alert", tpl.tone === "alert");
   s.style.setProperty("--efs", land ? 40 : 54);
   shrink(); fit();
