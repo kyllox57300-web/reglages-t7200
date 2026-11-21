@@ -137,6 +137,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
       <button type="button" class="btn ghost" id="add">+ Ajouter une étiquette</button>
       <ul class="rows" id="rows"></ul>
       <div class="status"><b>Image :</b> un <b>pictogramme</b> est choisi tout seul d'après le nom (tu peux le changer dans la liste). Pour une vraie photo : clique sur 🔍 pour chercher l'image, fais un clic droit sur l'image → <b>Copier l'image</b>, reviens ici et fais <b>Ctrl+V</b>. Tu peux aussi cliquer sur le carré de gauche ou y glisser une image.</div>
+      <label class="check" style="flex-direction:row;align-items:center;gap:8px;font-weight:500"><input type="checkbox" id="siteFirst" checked> 🔍 cherche les images sur bricocash.fr</label>
       <div class="status" id="pasteHint" role="status" style="color:var(--bleu-f);font-weight:600"></div>
       <button type="button" class="link danger" id="clear" hidden>Vider la liste</button>
     </fieldset>
@@ -193,8 +194,8 @@ function guessIcon(name){
 }
 
 /* ===== Mémoire sur ce PC (photos réduites comprises) ===== */
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify({items, size: $("size").value})); $("pstatus").dataset.saved = "1"; }catch(e){ $("pstatus").textContent = "Liste trop lourde pour être mémorisée : retire quelques photos."; } }
-try{ const d = JSON.parse(localStorage.getItem(KEY) || "null"); if(d){ items = d.items || []; if(d.size) $("size").value = d.size; } }catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({items, size: $("size").value, siteFirst: $("siteFirst").checked})); $("pstatus").dataset.saved = "1"; }catch(e){ $("pstatus").textContent = "Liste trop lourde pour être mémorisée : retire quelques photos."; } }
+try{ const d = JSON.parse(localStorage.getItem(KEY) || "null"); if(d){ items = d.items || []; if(d.size) $("size").value = d.size; if(d.siteFirst === false) $("siteFirst").checked = false; } }catch(e){}
 
 /* Devine la caractéristique à mettre en gros (Ø 100, 14 W, 2,5 m…) à partir du libellé */
 function guessBig(lib){
@@ -230,7 +231,8 @@ function drawRows(){
     li.addEventListener("click", () => { cur = i; ul.querySelectorAll("li").forEach((x, j) => x.classList.toggle("on", j === i)); });
     li.querySelector(".find").addEventListener("click", () => {
       const q = (it.name || "").trim(); if(!q){ li.querySelector(".nm").focus(); return; }
-      cur = i; window.open("https://www.google.com/search?tbm=isch&q=" + encodeURIComponent(q), "_blank", "noopener");
+      const site = $("siteFirst").checked ? "site:bricocash.fr " : "";
+      cur = i; window.open("https://www.google.com/search?tbm=isch&q=" + encodeURIComponent(site + q), "_blank", "noopener");
       $("pasteHint").textContent = `Copie une image, puis reviens ici et fais Ctrl+V : elle ira sur « ${q} ».`;
     });
     const pick = () => { const f = document.createElement("input"); f.type = "file"; f.accept = "image/*"; f.onchange = () => f.files[0] && setImg(it, f.files[0]); f.click(); };
@@ -344,6 +346,7 @@ document.addEventListener("paste", e => {
   setImg(items[cur], f); $("pasteHint").textContent = `Image ajoutée sur « ${items[cur].name || "l'étiquette"} ».`;
 });
 $("size").addEventListener("change", paint);
+$("siteFirst").addEventListener("change", save);
 $("form").addEventListener("submit", e => e.preventDefault());
 $("print").addEventListener("click", () => window.print());
 window.addEventListener("resize", fit);
