@@ -478,6 +478,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .g-text{font-weight:800;font-size:calc(var(--bfs,12.5)*var(--u)*var(--k,1));line-height:1.22;white-space:pre-line;text-wrap:balance;margin:0}
 .g-detail{font-family:var(--display);background:var(--bleu-f);color:#fff;border-radius:calc(3*var(--u));padding:calc(3*var(--u)) calc(7*var(--u));font-size:calc(9*var(--u)*var(--k,1));line-height:1.15}
 .g-detail:empty{display:none}
+.sign.alert .g-band{background:var(--rouge)}
+.sign.alert .g-band span{color:#fff}
+.sign.alert .g-detail{background:var(--rouge)}
 .g-foot{width:100%;background:var(--bleu);color:#fff;font-weight:700;padding:calc(5*var(--u)) calc(10*var(--u));font-size:calc(5.2*var(--u))}
 
 @media (max-width:820px){ .app{grid-template-columns:minmax(0,1fr)} .ui{border-right:0;padding-right:max(16px,env(safe-area-inset-right,0px))} .stage{padding:16px} }
@@ -510,7 +513,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
       <legend>2 · Texte</legend>
       <label>Titre<input type="text" id="title" maxlength="40"></label>
       <label>Message<textarea id="text" maxlength="220"></textarea></label>
-      <label id="detailWrap"><span id="detailLabel">Précision</span><input type="text" id="detail" maxlength="50"></label>
+      <label id="detailWrap"><span id="detailLabel">Précision</span><input type="text" id="detail" maxlength="100"></label>
       <div class="row2" id="dateWrap" hidden>
         <label><span id="dateLabel">Date</span><input type="date" id="date"></label>
         <label id="date2Wrap" hidden>Jusqu'au<input type="date" id="date2"></label>
@@ -556,7 +559,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 
 <script>
 const $ = id => document.getElementById(id);
-const EMOS = [["📦","Carton"],["🚚","Camion"],["🏃","Course"],["🛠️","Outils"],["💅","Beauté"],["🎨","Peinture"],["🧹","Balai"],["🔒","Cadenas"],["🎄","Sapin"],["🎉","Fête"],["⏰","Réveil"],["🙏","Merci"],["😅","Oups"],["👋","Coucou"],["➡️","Flèche"],["🛒","Chariot"],["📢","Annonce"],["❤️","Cœur"],["", "Aucune"]];
+const EMOS = [["📦","Carton"],["🚚","Camion"],["🏃","Course"],["🛠️","Outils"],["💅","Beauté"],["🎨","Peinture"],["🧹","Balai"],["🔒","Cadenas"],["🎄","Sapin"],["🎉","Fête"],["⏰","Réveil"],["🙏","Merci"],["😅","Oups"],["👋","Coucou"],["➡️","Flèche"],["🛒","Chariot"],["📢","Annonce"],["❤️","Cœur"],["⚠️","Attention"],["✏️","Correction"],["🚫","Interdit"],["💳","Carte bancaire"],["", "Aucune"]];
 const TPL = [
   {id: "rupture", e: "📦", name: "Rupture de stock", title: "Victime de son succès !",
    text: "Ce produit est parti plus vite que prévu.\nOn a déjà relancé notre fournisseur, il revient très vite !", detail: "", dateLabel: "Retour prévu le", dp: "Retour prévu le", foot: "Désolés pour la gêne · Merci de votre patience"},
@@ -574,6 +577,16 @@ const TPL = [
    text: "Plaques, isolant, matériaux… pas besoin de remorque.\nOn vous livre à domicile ou sur votre chantier.", detail: "Renseignements à l'accueil", detailLabel: "Infos (tarif, zone, délai…)", foot: "Demandez à un vendeur"},
   {id: "location", e: "🛠️", name: "Location de matériel", title: "Pas besoin d'acheter : louez !",
    text: "Besoin d'un outil pour un seul chantier ?\nLouez-le pour la durée de vos travaux.", detail: "Renseignements à l'accueil", detailLabel: "Infos (matériel, tarifs, caution…)", foot: "Demandez à un vendeur"},
+  {id: "erratum", e: "✏️", name: "Erratum", title: "Erratum",
+   text: "Une erreur s'est glissée dans notre prospectus.\nVoici l'information correcte :", detail: "Page … : …", detailLabel: "Correction (page, produit, bonne info)", foot: "Toutes nos excuses pour cette erreur"},
+  {id: "rappel", e: "⚠️", name: "Rappel produit", tone: "alert", title: "Rappel produit",
+   text: "Par mesure de précaution, nous rappelons le produit ci-dessous.\nNe l'utilisez plus et rapportez-le à l'accueil : il vous sera remboursé.", detail: "Produit : … · Réf. / lot : …", detailLabel: "Produit, référence, lot", foot: "Merci de votre compréhension"},
+  {id: "retire", e: "🚫", name: "Retiré de la vente", title: "Produit retiré de la vente",
+   text: "Ce produit n'est plus disponible à la vente.\nUn vendeur peut vous proposer une alternative.", detail: "", detailLabel: "Précision (facultatif)", foot: "Merci de votre compréhension"},
+  {id: "finoffre", e: "⏰", name: "Offre terminée", title: "Offre terminée",
+   text: "Cette offre est terminée.\nRestez attentifs : d'autres bonnes affaires arrivent très vite !", detail: "", detailLabel: "Précision (facultatif)", foot: "Brico Cash : + de stock, + de prix bas"},
+  {id: "cb", e: "💳", name: "Paiement CB indisponible", title: "Paiement par carte indisponible",
+   text: "Notre terminal de paiement fait une pause.\nMerci de régler en espèces ou à une autre caisse.", detail: "", detailLabel: "Précision (facultatif)", foot: "Désolés pour la gêne"},
   {id: "caisse", e: "🙏", name: "Caisse fermée", title: "Caisse fermée",
    text: "Cette caisse fait une petite pause.\nMerci de vous diriger vers la caisse voisine.", detail: "", detailLabel: "Précision (facultatif)", foot: "Merci et à bientôt !"},
   {id: "panne", e: "😅", name: "Hors service", title: "Oups, en panne !",
@@ -611,7 +624,7 @@ function detailText(){
     else parts.push(`${tpl.dp} ${d1}`);
   }
   const det = $("detail").value.trim();
-  if(det && det !== "Allée …") parts.push(det);
+  if(det && !det.includes("…")) parts.push(det);
   return parts.join(" · ");
 }
 function render(){
@@ -632,6 +645,7 @@ function render(){
   $("gText").textContent = $("text").value.trim();
   $("gDetail").textContent = detailText();
   $("gFoot").textContent = tpl.foot;
+  s.classList.toggle("alert", tpl.tone === "alert");
   s.style.setProperty("--efs", land ? 40 : 54);
   shrink(); fit();
 }
