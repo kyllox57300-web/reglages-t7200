@@ -531,6 +531,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .p-foot{background:var(--bleu);color:#fff;padding:calc(22*var(--u)) calc(50*var(--u));text-align:center;font-weight:700;font-size:calc(30*var(--u));line-height:1.35;min-height:calc(40*var(--u))}
 .p-foot:empty{padding:calc(14*var(--u))}
 
+/* Style Black Friday : noir et jaune */
+.poster.bf .p-band{background-color:#111;background-image:repeating-linear-gradient(-62deg,transparent 0 calc(70*var(--u)),rgba(247,178,50,.14) calc(70*var(--u)) calc(110*var(--u)))}
+.poster.bf .p-band span{color:var(--jaune)}
+.poster.bf .p-name,.poster.bf .c-name{color:#111}
+.poster.bf .p-big{background:#111;color:var(--jaune)}
+.poster.bf .p-unit,.poster.bf .c-unit{color:#111}
+.poster.bf .p-foot{background:#111}
+.poster.bf .p-cell{border-color:#111}
 /* Liste des produits */
 .modes{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#eef2f6;padding:4px;border-radius:10px}
 .modes button{all:unset;text-align:center;padding:9px 6px;border-radius:7px;font-weight:600;font-size:.86rem;cursor:pointer;color:var(--muted)}
@@ -619,7 +627,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
       <legend>2 · Opération (pour toute la liste)</legend>
       <label>Bandeau
         <select id="type">
-          <option>SOLDES</option><option>PROMO</option><option>PRIX CHOC</option><option>ARRIVAGE</option><option>DÉSTOCKAGE</option>
+          <option>BLACK FRIDAY</option><option>SOLDES</option><option>PROMO</option><option>PRIX CHOC</option><option>ARRIVAGE</option><option>DÉSTOCKAGE</option>
           <option>NOUVEAU</option><option>BONNE AFFAIRE</option><option value="">Autre texte…</option>
         </select>
       </label>
@@ -866,6 +874,7 @@ function frameOf(poster, G){
   poster.querySelector(".p-band span").textContent = G.band;
   poster.style.setProperty("--bandfs", Math.min(150, Math.round(700 / (Math.max(G.band.length, 3) * 0.8))));
   poster.querySelector(".p-foot").textContent = footText(G);
+  poster.classList.toggle("bf", /BLACK\s*FRIDAY/i.test(G.band));
   const fr = document.createElement("div"); fr.className = "frame"; fr.appendChild(poster); return fr;
 }
 function posterOne(it, G){

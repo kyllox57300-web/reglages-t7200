@@ -483,6 +483,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .g-text{font-weight:800;font-size:calc(var(--bfs,12.5)*var(--u)*var(--k,1));line-height:1.22;white-space:pre-line;text-wrap:balance;margin:0}
 .g-detail{font-family:var(--display);background:var(--bleu-f);color:#fff;border-radius:calc(3*var(--u));padding:calc(3*var(--u)) calc(7*var(--u));font-size:calc(9*var(--u)*var(--k,1));line-height:1.15}
 .g-detail:empty{display:none}
+.sign.bf .g-top{background:#111}
+.sign.bf .g-band{background:#111}
+.sign.bf .g-band span{color:var(--jaune)}
+.sign.bf .g-detail,.sign.bf .g-foot{background:#111}
+.sign.bf .g-foot{color:var(--jaune)}
 .sign.alert .g-band{background:var(--rouge)}
 .sign.alert .g-band span{color:#fff}
 .sign.alert .g-detail{background:var(--rouge)}
@@ -567,8 +572,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 
 <script>
 const $ = id => document.getElementById(id);
-const EMOS = [["📦","Carton"],["🚚","Camion"],["🏃","Course"],["🛠️","Outils"],["💅","Beauté"],["🎨","Peinture"],["🧹","Balai"],["🔒","Cadenas"],["🎄","Sapin"],["🎉","Fête"],["⏰","Réveil"],["🙏","Merci"],["😅","Oups"],["👋","Coucou"],["➡️","Flèche"],["🛒","Chariot"],["📢","Annonce"],["❤️","Cœur"],["⚠️","Attention"],["✏️","Correction"],["🚫","Interdit"],["💳","Carte bancaire"],["💶","Billets"],["⚡","Éclair"],["", "Aucune"]];
+const EMOS = [["📦","Carton"],["🚚","Camion"],["🏃","Course"],["🛠️","Outils"],["💅","Beauté"],["🎨","Peinture"],["🧹","Balai"],["🔒","Cadenas"],["🎄","Sapin"],["🎉","Fête"],["⏰","Réveil"],["🙏","Merci"],["😅","Oups"],["👋","Coucou"],["➡️","Flèche"],["🛒","Chariot"],["📢","Annonce"],["❤️","Cœur"],["🖤","Cœur noir"],["🛍️","Shopping"],["⚠️","Attention"],["✏️","Correction"],["🚫","Interdit"],["💳","Carte bancaire"],["💶","Billets"],["⚡","Éclair"],["", "Aucune"]];
 const TPL = [
+  {id: "blackfriday", e: "🖤", name: "Black Friday", tone: "bf", title: "Black Friday",
+   text: "Des prix encore plus bas sur une sélection de produits.\nEn quantité limitée : premiers arrivés, premiers servis !", detail: "", detailLabel: "Précision (facultatif)", dateLabel: "Du", dp: "Le", date2: true, foot: "Brico Cash : + de stock, + de prix bas"},
   {id: "rupture", e: "📦", name: "Rupture de stock", title: "Victime de son succès !",
    text: "Ce produit est parti plus vite que prévu.\nOn a déjà relancé notre fournisseur, il revient très vite !", detail: "", dateLabel: "Retour prévu le", dp: "Retour prévu le", foot: "Désolés pour la gêne · Merci de votre patience"},
   {id: "travaux", e: "💅", name: "Rayon en travaux", title: "Ce rayon se refait une beauté",
@@ -616,7 +623,7 @@ let tpl = TPL[0];
 
 EMOS.forEach(([e, n]) => $("emo").appendChild(new Option(e ? `${e}  ${n}` : n, e)));
 /* Menu rangé par catégories, avec « Mes modèles » en premier (mémorisés sur ce PC) */
-const GROUPS = [["Magasin", ["rupture","travaux","demenage","arrivage","retire","finoffre","erratum","rappel"]],
+const GROUPS = [["Opérations", ["blackfriday"]], ["Magasin", ["rupture","travaux","demenage","arrivage","retire","finoffre","erratum","rappel"]],
   ["Caisses", ["cbonly","especes","express","cheque","cb","caisse"]],
   ["Services", ["livraison","location"]],
   ["Infos", ["fermeture","horaires","panne","recrute","libre"]]];
@@ -693,6 +700,7 @@ function render(){
   $("gDetail").textContent = detailText();
   $("gFoot").textContent = $("foot").value.trim();
   s.classList.toggle("alert", tpl.tone === "alert");
+  s.classList.toggle("bf", tpl.tone === "bf");
   s.style.setProperty("--efs", land ? 40 : 54);
   shrink(); fit();
 }
