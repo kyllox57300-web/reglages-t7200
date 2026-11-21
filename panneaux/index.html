@@ -559,7 +559,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 
 <script>
 const $ = id => document.getElementById(id);
-const EMOS = [["📦","Carton"],["🚚","Camion"],["🏃","Course"],["🛠️","Outils"],["💅","Beauté"],["🎨","Peinture"],["🧹","Balai"],["🔒","Cadenas"],["🎄","Sapin"],["🎉","Fête"],["⏰","Réveil"],["🙏","Merci"],["😅","Oups"],["👋","Coucou"],["➡️","Flèche"],["🛒","Chariot"],["📢","Annonce"],["❤️","Cœur"],["⚠️","Attention"],["✏️","Correction"],["🚫","Interdit"],["💳","Carte bancaire"],["", "Aucune"]];
+const EMOS = [["📦","Carton"],["🚚","Camion"],["🏃","Course"],["🛠️","Outils"],["💅","Beauté"],["🎨","Peinture"],["🧹","Balai"],["🔒","Cadenas"],["🎄","Sapin"],["🎉","Fête"],["⏰","Réveil"],["🙏","Merci"],["😅","Oups"],["👋","Coucou"],["➡️","Flèche"],["🛒","Chariot"],["📢","Annonce"],["❤️","Cœur"],["⚠️","Attention"],["✏️","Correction"],["🚫","Interdit"],["💳","Carte bancaire"],["💶","Billets"],["⚡","Éclair"],["", "Aucune"]];
 const TPL = [
   {id: "rupture", e: "📦", name: "Rupture de stock", title: "Victime de son succès !",
    text: "Ce produit est parti plus vite que prévu.\nOn a déjà relancé notre fournisseur, il revient très vite !", detail: "", dateLabel: "Retour prévu le", dp: "Retour prévu le", foot: "Désolés pour la gêne · Merci de votre patience"},
@@ -587,6 +587,14 @@ const TPL = [
    text: "Cette offre est terminée.\nRestez attentifs : d'autres bonnes affaires arrivent très vite !", detail: "", detailLabel: "Précision (facultatif)", foot: "Brico Cash : + de stock, + de prix bas"},
   {id: "cb", e: "💳", name: "Paiement CB indisponible", title: "Paiement par carte indisponible",
    text: "Notre terminal de paiement fait une pause.\nMerci de régler en espèces ou à une autre caisse.", detail: "", detailLabel: "Précision (facultatif)", foot: "Désolés pour la gêne"},
+  {id: "cbonly", e: "💳", name: "Caisse CB uniquement", title: "Carte bancaire uniquement",
+   text: "Cette caisse accepte uniquement\nles paiements par carte bancaire.", detail: "Sans contact accepté", detailLabel: "Précision (facultatif)", foot: "Merci de votre compréhension"},
+  {id: "especes", e: "💶", name: "Caisse espèces uniquement", title: "Caisse espèces uniquement",
+   text: "Cette caisse accepte uniquement\nles paiements en espèces.", detail: "", detailLabel: "Précision (facultatif)", foot: "Merci de votre compréhension"},
+  {id: "express", e: "⚡", name: "Caisse express", title: "Caisse express",
+   text: "Peu d'articles ? Passez par ici,\nc'est plus rapide !", detail: "Jusqu'à 5 articles", detailLabel: "Condition", foot: "Merci et à bientôt !"},
+  {id: "cheque", e: "🚫", name: "Chèques non acceptés", title: "Chèques non acceptés",
+   text: "Nous n'acceptons pas les paiements par chèque.\nCarte bancaire et espèces acceptées.", detail: "", detailLabel: "Précision (facultatif)", foot: "Merci de votre compréhension"},
   {id: "caisse", e: "🙏", name: "Caisse fermée", title: "Caisse fermée",
    text: "Cette caisse fait une petite pause.\nMerci de vous diriger vers la caisse voisine.", detail: "", detailLabel: "Précision (facultatif)", foot: "Merci et à bientôt !"},
   {id: "panne", e: "😅", name: "Hors service", title: "Oups, en panne !",
