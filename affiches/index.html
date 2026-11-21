@@ -511,7 +511,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .p-band span{font-family:var(--display);color:var(--bleu-f);font-size:calc(var(--bandfs,150)*var(--u));line-height:1;letter-spacing:.01em;text-transform:uppercase;display:block}
 .p-main{flex:1 1 auto;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(22*var(--u));padding:calc(40*var(--u)) calc(60*var(--u)) calc(20*var(--u));text-align:center;min-height:0}
 .p-name{font-family:var(--display);color:var(--bleu-f);font-size:calc(var(--namefs,100)*var(--k,1)*var(--u));line-height:1.02;text-transform:uppercase;text-wrap:balance;margin:0}
-.p-photo{max-width:100%;max-height:calc(330*var(--k,1)*var(--u));object-fit:contain;min-height:0}
+/* La photo garde une vraie hauteur : c'est le texte et la photo ensemble qui rétrécissent si besoin */
+.p-photo{flex:none;height:calc(320*var(--k,1)*var(--u));width:auto;max-width:100%;object-fit:contain}
 .p-details{font-weight:700;font-size:calc(var(--detfs,44)*var(--k,1)*var(--u));line-height:1.25;color:var(--txt);margin:0;white-space:pre-line}
 .p-ref{font-weight:500;color:var(--gris);font-size:calc(26*var(--u))}
 .p-price{display:flex;flex-direction:column;align-items:center;gap:calc(10*var(--u));padding:0 calc(50*var(--u)) calc(26*var(--u))}
