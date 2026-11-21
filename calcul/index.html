@@ -99,6 +99,24 @@ const CALCS = {
       if(v.plinthe && v.per) L.push(`Plinthes : ${ceil(v.per / 2.4)} de 2,40 m (${fmt(v.per)} m de tour, sans déduire les portes)`);
       if(v.sc) L.push(`Sous-couche : ${fmt(v.s * 1.05)} m², soit ${ceil(v.s * 1.05 / 15)} rouleau(x) de 15 m²`);
       return {big: `${n} paquet${n > 1 ? "s" : ""}`, lines: L}; }},
+  lino: {title: "Combien de mètres de lino ?", menu: "Lino, sol en rouleau", desc: "Au mètre, selon la largeur du rouleau",
+    fields: f => [f.room(), f.select("lw", "Largeur du rouleau", [["2", "2 m"], ["3", "3 m"], ["4", "4 m"], ["5", "5 m"]], P("lw") || "4"),
+      f.num("mg", "Marge par coupe", "cm", 10, "pour l'ajustement le long des murs")],
+    calc: v => {
+      const R = +v.lw || 4, m = (v.mg || 0) / 100;
+      if(!v.L || !v.l || !R) return null;
+      // On essaie les deux sens de pose et on garde celui qui demande le moins de lino
+      const plan = (len, wid) => { const n = ceil(wid / R); return {n, each: len + m, total: n * (len + m), len, wid}; };
+      const a = plan(v.L, v.l), b = plan(v.l, v.L);
+      const best = (b.total < a.total - 1e-9 || (Math.abs(b.total - a.total) < 1e-9 && b.n < a.n)) ? b : a;
+      const ml = Math.ceil(best.total * 10 - 1e-9) / 10;
+      const L = [];
+      if(best.n === 1) L.push(`Une seule coupe de ${fmt(R)} m de large × ${fmt(best.each)} m de long : pas de raccord`);
+      else L.push(`${best.n} lés de ${fmt(best.each)} m dans le rouleau de ${fmt(R)} m, avec ${best.n - 1} raccord${best.n > 2 ? "s" : ""}`);
+      L.push(`Surface achetée : ${fmt(ml * R, 1)} m² pour une pièce de ${fmt(v.L * v.l, 1)} m²`);
+      if(best.n > 1 && R < 5) L.push("Astuce : un rouleau plus large peut éviter le raccord, demandez à un vendeur");
+      return {big: `${fmt(ml, 1)} m de lino`, lines: L};
+    }},
   peinture: {title: "Combien de pots de peinture ?", menu: "Peinture", desc: "Murs et plafond",
     fields: f => [f.room(), f.num("hm", "Hauteur sous plafond", "m", 2.5), f.row(f.num("portes", "Portes", "", 1), f.num("fen", "Fenêtres", "", 1)),
       f.check("plafond", "Peindre aussi le plafond"), f.seg("couches", "Nombre de couches", [["1", "1"], ["2", "2"], ["3", "3"]], "2"),

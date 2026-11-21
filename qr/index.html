@@ -2385,6 +2385,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
           <option value="simple">Calcul simple : tous les produits au m² (1 QR pour tout le magasin)</option>
           <option value="isolant">Isolant (rouleaux)</option>
           <option value="sol">Parquet, stratifié, sol (paquets)</option>
+          <option value="lino">Lino, sol en rouleau (au mètre)</option>
           <option value="peinture">Peinture (pots)</option>
           <option value="carrelage">Carrelage, faïence (cartons)</option>
           <option value="plaque">Plaques de plâtre BA13</option>
@@ -2401,6 +2402,9 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
       </div>
       <label id="wrapH" hidden>Longueur des plaques
         <select id="h"><option value="2.5">2,50 m</option><option value="2.6">2,60 m</option><option value="2.7">2,70 m</option><option value="2.8">2,80 m</option><option value="3">3,00 m</option></select>
+      </label>
+      <label id="wrapLw" hidden>Largeur du rouleau
+        <select id="lw"><option value="2">2 m</option><option value="3">3 m</option><option value="4" selected>4 m</option><option value="5">5 m</option></select>
       </label>
       <label id="wrapW" hidden>Poids du sac<select id="w"><option value="35">35 kg</option><option value="25">25 kg</option></select></label>
       <label>Format de la feuille
@@ -2436,7 +2440,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 
 <script>
 const $ = id => document.getElementById(id);
-const TITLES = {simple: "Combien de paquets ?", isolant: "Combien de rouleaux ?", sol: "Combien de paquets ?", peinture: "Combien de pots ?", carrelage: "Combien de cartons ?",
+const TITLES = {simple: "Combien de paquets ?", isolant: "Combien de rouleaux ?", sol: "Combien de paquets ?", lino: "Combien de mètres ?", peinture: "Combien de pots ?", carrelage: "Combien de cartons ?",
   plaque: "Combien de plaques ?", osb: "Combien de panneaux ?", beton: "Combien de sacs ?", m2: "Combien de colis ?"};
 const KEY = "feuilles-qr-v1";
 const BASE = new URL("../calcul/", location.href).href;
@@ -2447,7 +2451,7 @@ const store = () => { try{ localStorage.setItem(KEY, JSON.stringify(saved)); }ca
 
 function current(){
   return {type: $("type").value, name: $("name").value.trim(), c: $("c").value.trim(), r: $("r").value.trim(), v: $("v").value.trim(),
-    h: $("h").value, w: $("w").value, format: $("format").value};
+    h: $("h").value, w: $("w").value, lw: $("lw").value, format: $("format").value};
 }
 function urlFor(d){
   const q = new URLSearchParams({t: d.type});
@@ -2457,13 +2461,14 @@ function urlFor(d){
   if(d.type === "peinture"){ if(parseFloat(n(d.r)) > 0) q.set("r", n(d.r)); if(parseFloat(n(d.v)) > 0) q.set("v", n(d.v)); }
   if(d.type === "plaque") q.set("h", d.h);
   if(d.type === "beton") q.set("w", d.w);
+  if(d.type === "lino") q.set("lw", d.lw);
   return BASE + "?" + q.toString();
 }
 function render(d = current(), date = today()){
   const t = d.type;
   $("wrapC").hidden = !["simple","isolant","sol","carrelage","m2","osb"].includes(t);
   $("cHint").textContent = t === "osb" ? "en m², laisser vide pour le choix du client" : "en m², sur l'étiquette · facultatif";
-  $("wrapPaint").hidden = t !== "peinture"; $("wrapH").hidden = t !== "plaque"; $("wrapW").hidden = t !== "beton";
+  $("wrapPaint").hidden = t !== "peinture"; $("wrapH").hidden = t !== "plaque"; $("wrapW").hidden = t !== "beton"; $("wrapLw").hidden = t !== "lino";
   $("sTitle").textContent = TITLES[t];
   $("sheet").style.setProperty("--tfs", TITLES[t].length > 20 ? 9 : 10.5);
   $("sProd").textContent = d.name || (t === "simple" ? "Le m² du paquet est marqué sur l'étiquette" : "");
@@ -2497,7 +2502,7 @@ function drawSaved(){
     ul.appendChild(li);
   });
 }
-function load(d){ ["type","name","c","r","v","h","w","format"].forEach(k => { if(d[k] != null) $(k).value = d[k]; }); }
+function load(d){ ["type","name","c","r","v","h","w","lw","format"].forEach(k => { if(d[k] != null) $(k).value = d[k]; }); }
 function upsert(){
   const d = current(), key = urlFor(d) + "|" + d.format;
   const i = saved.findIndex(x => urlFor(x) + "|" + x.format === key);
