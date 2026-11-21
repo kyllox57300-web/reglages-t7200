@@ -72,7 +72,8 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 /* Lignes d'étiquettes */
 .rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .rows li{border:1px solid var(--line);border-radius:8px;padding:8px;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:8px;align-items:center}
-.rows li.over{background:#eef5fb;border-color:var(--bleu)}
+.rows li.over,.rows li.on{background:#eef5fb;border-color:var(--bleu)}
+.side .find{color:var(--bleu);font-size:.95rem}
 .ph{width:52px;height:52px;border-radius:6px;border:1.5px dashed var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;font-size:.68rem;color:var(--muted);text-align:center;line-height:1.1;background:#fafbfc}
 .ph img{width:100%;height:100%;object-fit:contain;background:#fff}
 .flds{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:6px}
@@ -132,7 +133,8 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
       <ul class="results" id="results" hidden></ul>
       <button type="button" class="btn ghost" id="add">+ Ajouter une étiquette</button>
       <ul class="rows" id="rows"></ul>
-      <div class="status">Clique sur le carré de gauche, ou glisses-y une image, pour ajouter la photo du produit.</div>
+      <div class="status"><b>Photo :</b> clique sur 🔍 pour chercher l'image, fais un clic droit sur l'image → <b>Copier l'image</b>, reviens ici et fais <b>Ctrl+V</b>. Tu peux aussi cliquer sur le carré de gauche ou y glisser une image.</div>
+      <div class="status" id="pasteHint" role="status" style="color:var(--bleu-f);font-weight:600"></div>
       <button type="button" class="link danger" id="clear" hidden>Vider la liste</button>
     </fieldset>
 
@@ -162,6 +164,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
     </div>
     <div class="side">
       <input type="text" class="qty" inputmode="numeric" value="1" aria-label="Nombre d'exemplaires"><small>exempl.</small>
+      <button type="button" class="find" title="Chercher une image sur Internet" aria-label="Chercher une image">🔍</button>
       <button type="button" class="del" aria-label="Retirer">✕</button>
     </div>
   </li>
@@ -171,7 +174,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 const $ = id => document.getElementById(id);
 const KEY = "etiquettes-bacs-v1";
 const SIZES = {"90x32": {cols: 2, rows: 8, nfs: 2.6, bfs: 7.5, gap: 3, imgw: 22}, "95x40": {cols: 2, rows: 6, nfs: 3.1, bfs: 9.5, gap: 5, imgw: 28}, "130x55": {cols: 1, rows: 5, nfs: 4.2, bfs: 13, gap: 2, imgw: 40}};
-let items = [];
+let items = [], cur = -1;
 
 /* ===== Mémoire sur ce PC (photos réduites comprises) ===== */
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify({items, size: $("size").value})); $("pstatus").dataset.saved = "1"; }catch(e){ $("pstatus").textContent = "Liste trop lourde pour être mémorisée : retire quelques photos."; } }
@@ -195,7 +198,15 @@ function drawRows(){
     li.querySelector(".nm").addEventListener("input", e => { it.name = e.target.value; paint(); });
     li.querySelector(".big").addEventListener("input", e => { it.big = e.target.value; paint(); });
     li.querySelector(".qty").addEventListener("input", e => { it.qty = Math.min(Math.max(parseInt(e.target.value) || 1, 1), 99); paint(); });
-    li.querySelector(".del").addEventListener("click", () => { items.splice(i, 1); drawRows(); paint(); });
+    li.querySelector(".del").addEventListener("click", () => { items.splice(i, 1); if(cur >= items.length) cur = items.length - 1; drawRows(); paint(); });
+    if(i === cur) li.classList.add("on");
+    li.addEventListener("focusin", () => { if(cur !== i){ cur = i; ul.querySelectorAll("li").forEach((x, j) => x.classList.toggle("on", j === i)); } });
+    li.addEventListener("click", () => { cur = i; ul.querySelectorAll("li").forEach((x, j) => x.classList.toggle("on", j === i)); });
+    li.querySelector(".find").addEventListener("click", () => {
+      const q = (it.name || "").trim(); if(!q){ li.querySelector(".nm").focus(); return; }
+      cur = i; window.open("https://www.google.com/search?tbm=isch&q=" + encodeURIComponent(q), "_blank", "noopener");
+      $("pasteHint").textContent = `Copie une image, puis reviens ici et fais Ctrl+V : elle ira sur « ${q} ».`;
+    });
     const pick = () => { const f = document.createElement("input"); f.type = "file"; f.accept = "image/*"; f.onchange = () => f.files[0] && setImg(it, f.files[0]); f.click(); };
     ph.addEventListener("click", pick); ph.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); pick(); } });
     ["dragenter","dragover"].forEach(t => li.addEventListener(t, e => { e.preventDefault(); li.classList.add("over"); }));
@@ -214,7 +225,7 @@ async function setImg(it, file){
   it.img = c.toDataURL("image/jpeg", 0.85); URL.revokeObjectURL(url);
   drawRows(); paint();
 }
-function addItem(name = "", big = ""){ items.push({name, big, qty: 1, img: ""}); drawRows(); paint(); const last = $("rows").lastElementChild; if(last && !name) last.querySelector(".nm").focus(); }
+function addItem(name = "", big = ""){ items.push({name, big, qty: 1, img: ""}); cur = items.length - 1; drawRows(); paint(); const last = $("rows").lastElementChild; if(last && !name) last.querySelector(".nm").focus(); }
 $("add").addEventListener("click", () => addItem());
 $("clear").addEventListener("click", () => {
   const b = $("clear"); if(b.dataset.c !== "1"){ b.dataset.c = "1"; b.textContent = "Confirmer : vider toute la liste"; return; }
@@ -297,6 +308,14 @@ $("search").addEventListener("input", () => {
   });
 });
 
+/* Coller une image (Ctrl+V) : elle va sur l'étiquette sélectionnée */
+document.addEventListener("paste", e => {
+  const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith("image/"));
+  if(!f) return;
+  e.preventDefault();
+  if(cur < 0 || !items[cur]){ $("pasteHint").textContent = "Sélectionne d'abord une étiquette (clique dessus), puis refais Ctrl+V."; return; }
+  setImg(items[cur], f); $("pasteHint").textContent = `Image ajoutée sur « ${items[cur].name || "l'étiquette"} ».`;
+});
 $("size").addEventListener("change", paint);
 $("form").addEventListener("submit", e => e.preventDefault());
 $("print").addEventListener("click", () => window.print());
