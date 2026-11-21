@@ -632,6 +632,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
         </select>
       </label>
       <label id="customWrap" hidden>Texte du bandeau<input type="text" id="custom" maxlength="24" value=""></label>
+      <label>Couleurs<select id="theme"><option value="auto">Automatique (noir pour le Black Friday)</option><option value="bc">Brico Cash : bleu et jaune</option><option value="noir">Noir et jaune</option></select></label>
       <div class="row2">
         <label>Prix
           <select id="op"><option value="pct">Remise en %</option><option value="none">Prix normal</option></select>
@@ -743,7 +744,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 
 <script>
 const $ = id => document.getElementById(id);
-const GLOBAL = ["mode","type","custom","op","rem","round","pct","from","to","stock","layout","per","format"];
+const GLOBAL = ["mode","theme","type","custom","op","rem","round","pct","from","to","stock","layout","per","format"];
 const KEY = "affiches-gf-v2", PKEY = "affiches-produits-v1";
 let items = [], cur = -1, products = [];
 
@@ -765,7 +766,7 @@ const g = () => ({
   band: $("type").value || $("custom").value.trim() || " ",
   op: $("op").value, rem: Math.min(Math.max(num($("rem").value) || 0, 0), 95), round: $("round").value,
   pct: $("pct").checked, from: $("from").value, to: $("to").value, stock: $("stock").checked,
-  layout: $("layout").value, per: +$("per").value, format: $("format").value
+  layout: $("layout").value, per: +$("per").value, format: $("format").value, theme: $("theme").value
 });
 
 /* Prix d'un article : calculé depuis le prix magasin, sauf si modifié à la main */
@@ -874,7 +875,7 @@ function frameOf(poster, G){
   poster.querySelector(".p-band span").textContent = G.band;
   poster.style.setProperty("--bandfs", Math.min(150, Math.round(700 / (Math.max(G.band.length, 3) * 0.8))));
   poster.querySelector(".p-foot").textContent = footText(G);
-  poster.classList.toggle("bf", /BLACK\s*FRIDAY/i.test(G.band));
+  poster.classList.toggle("bf", G.theme === "noir" || (G.theme !== "bc" && /BLACK\s*FRIDAY/i.test(G.band)));
   const fr = document.createElement("div"); fr.className = "frame"; fr.appendChild(poster); return fr;
 }
 function posterOne(it, G){

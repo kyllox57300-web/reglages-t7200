@@ -529,6 +529,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
         <label id="date2Wrap" hidden>Jusqu'au<input type="date" id="date2"></label>
       </div>
       <label>Image<select id="emo"></select></label>
+      <label>Couleurs<select id="theme"><option value="auto">Automatique (noir pour le Black Friday)</option><option value="bc">Brico Cash : bleu et jaune</option><option value="noir">Noir et jaune</option></select></label>
       <label>Bas du panneau<input type="text" id="foot" maxlength="70"></label>
       <button type="button" class="btn ghost" id="saveTpl">⭐ Enregistrer comme modèle</button>
       <div class="status" id="tplStatus" role="status"></div>
@@ -700,7 +701,8 @@ function render(){
   $("gDetail").textContent = detailText();
   $("gFoot").textContent = $("foot").value.trim();
   s.classList.toggle("alert", tpl.tone === "alert");
-  s.classList.toggle("bf", tpl.tone === "bf");
+  const th = $("theme").value;
+  s.classList.toggle("bf", th === "noir" || (th !== "bc" && tpl.tone === "bf"));
   s.style.setProperty("--efs", land ? 40 : 54);
   shrink(); fit();
 }

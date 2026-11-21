@@ -99,6 +99,7 @@ canvas#cv{width:100%;max-width:520px;height:auto;max-height:72vh;object-fit:cont
         <div class="chips" id="tags" role="group" aria-label="Étiquette"></div>
       </div>
       <label id="customWrap" hidden>Texte de l'étiquette<input type="text" id="custom" maxlength="22"></label>
+      <label>Couleurs<select id="theme"><option value="auto">Automatique (noir pour le Black Friday)</option><option value="bc">Brico Cash : bleu et jaune</option><option value="noir">Noir et jaune</option></select></label>
       <label>Phrase en bas <small>facultatif · courte, ex. « + de 500 rouleaux en stock »</small><input type="text" id="phrase" maxlength="70"></label>
       <div class="row2">
         <label>Prix <small>facultatif</small><input type="text" id="price" inputmode="decimal" placeholder="ex. 59,90"></label>
@@ -123,7 +124,7 @@ const KEY = "photos-fb-v1";
 let photos = [], cur = -1, format = "portrait", cache = new Map();
 
 /* ===== Réglages mémorisés (sur cet appareil) ===== */
-let prefs = {tag: "ARRIVAGE", format: "portrait", allSame: true};
+let prefs = {tag: "ARRIVAGE", format: "portrait", allSame: true, theme: "auto"};
 try{ Object.assign(prefs, JSON.parse(localStorage.getItem(KEY) || "{}")); }catch(e){}
 format = prefs.format; $("allSame").checked = prefs.allSame;
 const savePrefs = () => { try{ localStorage.setItem(KEY, JSON.stringify(prefs)); }catch(e){} };
@@ -154,6 +155,9 @@ function setTag(val){
 }
 $("custom").addEventListener("input", () => setTag($("custom").value.trim().toUpperCase() || "À DÉCOUVRIR"));
 $("allSame").addEventListener("change", () => { prefs.allSame = $("allSame").checked; savePrefs(); });
+$("theme").value = prefs.theme || "auto";
+$("theme").addEventListener("change", () => { prefs.theme = $("theme").value; savePrefs(); render(); });
+const isDark = tag => prefs.theme === "noir" || (prefs.theme !== "bc" && /BLACK\s*FRIDAY/i.test(tag));
 
 /* ===== Photos ===== */
 $("files").addEventListener("change", e => { const files = [...e.target.files]; e.target.value = ""; addFiles(files); });
@@ -235,7 +239,7 @@ function paint(ctx, p, W, H){
     const lines = wrap(ctx, phrase, W - 120 * u).slice(0, 3);
     const lh = 64 * u, blockH = lines.length * lh + 70 * u;
     const g = ctx.createLinearGradient(0, H - blockH - 80 * u, 0, H);
-    const rgb = /BLACK\s*FRIDAY/i.test(p.tag) ? "17,17,17" : "7,90,147";
+    const rgb = isDark(p.tag) ? "17,17,17" : "7,90,147";
     g.addColorStop(0, `rgba(${rgb},0)`); g.addColorStop(.35, `rgba(${rgb},.85)`); g.addColorStop(1, `rgba(${rgb},.97)`);
     ctx.fillStyle = g; ctx.fillRect(0, H - blockH - 80 * u, W, blockH + 80 * u);
     ctx.fillStyle = "#fff"; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
@@ -250,7 +254,7 @@ function paint(ctx, p, W, H){
     const tw = ctx.measureText(p.tag).width, bw = tw + 70 * u, bh = 112 * u;
     ctx.translate(48 * u, bottom - bh); ctx.rotate(-4 * Math.PI / 180);
     ctx.shadowColor = "rgba(0,0,0,.3)"; ctx.shadowBlur = 20 * u; ctx.shadowOffsetY = 6 * u;
-    const bfTag = /BLACK\s*FRIDAY/i.test(p.tag);
+    const bfTag = isDark(p.tag);
     ctx.fillStyle = bfTag ? "#111111" : "#f7b232"; rrect(ctx, 0, 0, bw, bh, 10 * u); ctx.fill();
     ctx.shadowColor = "transparent";
     ctx.fillStyle = bfTag ? "#f7b232" : "#075a93"; ctx.textBaseline = "middle"; ctx.fillText(p.tag, 35 * u, bh / 2 + 4 * u);
