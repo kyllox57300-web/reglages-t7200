@@ -86,6 +86,16 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .side button:hover{color:var(--rouge)}
 .side input{width:44px;text-align:center;padding:4px;font-size:.8rem}
 .side small{font-size:.66rem;color:var(--muted)}
+.info{border:1px solid #f0d08a;background:#fff8e8;border-radius:8px;padding:0;font-size:.84rem}
+.info summary{cursor:pointer;padding:9px 12px;font-weight:700;color:#7a4e00;list-style:none}
+.info summary::-webkit-details-marker{display:none}
+.info summary::after{content:" ▾";font-weight:400}
+.info[open] summary::after{content:" ▴"}
+.info summary:focus-visible{outline:2px solid var(--bleu);outline-offset:2px;border-radius:8px}
+.info .in{padding:0 12px 12px;display:flex;flex-direction:column;gap:8px}
+.info h3{margin:4px 0 0;font-size:.84rem}
+.info ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.info p{margin:0}
 .stage{padding:24px;display:flex;flex-direction:column;align-items:center;gap:24px;overflow:auto;max-height:100vh;position:sticky;top:0}
 .frame{box-shadow:0 6px 30px rgba(10,40,70,.18);background:#fff;flex:none;overflow:hidden}
 .empty{max-width:420px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:6px;margin-top:15vh}
@@ -138,6 +148,32 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
       <ul class="rows" id="rows"></ul>
       <div class="status"><b>Image :</b> un <b>pictogramme</b> est choisi tout seul d'après le nom (tu peux le changer dans la liste). Pour une vraie photo : clique sur 🔍 pour chercher l'image, fais un clic droit sur l'image → <b>Copier l'image</b>, reviens ici et fais <b>Ctrl+V</b>. Tu peux aussi cliquer sur le carré de gauche ou y glisser une image.</div>
       <label class="check" style="flex-direction:row;align-items:center;gap:8px;font-weight:500"><input type="checkbox" id="siteFirst" checked> 🔍 cherche les images sur bricocash.fr</label>
+      <details class="info" id="info">
+        <summary>ℹ️ Quelles images utiliser, et pourquoi ?</summary>
+        <div class="in">
+          <h3>✅ Les images qu'on peut utiliser</h3>
+          <ul>
+            <li><b>Les pictogrammes de l'outil</b> : libres de droits, toujours propres.</li>
+            <li><b>Les photos de bricocash.fr</b> : ce sont celles de notre enseigne.</li>
+            <li><b>Les photos des fabricants et fournisseurs</b> des produits qu'on vend : elles sont faites pour que les magasins présentent leurs produits.</li>
+            <li><b>Nos propres photos</b>, prises en magasin.</li>
+          </ul>
+          <h3>❌ Les images à éviter</h3>
+          <ul>
+            <li><b>Les photos d'autres magasins</b> (Leroy Merlin, Brico Dépôt, Castorama…) ou de sites de vente comme Amazon.</li>
+            <li><b>Les photos de particuliers</b> : forums, réseaux sociaux, annonces.</li>
+            <li>Les images avec un <b>filigrane</b>, un <b>logo</b> ou un <b>prix</b> dessus.</li>
+          </ul>
+          <h3>Pourquoi ?</h3>
+          <ul>
+            <li><b>Les droits</b> : une photo appartient à celui qui l'a prise ou payée. La réutiliser sans accord, c'est interdit, et ça peut valoir une demande de retrait, voire une facture.</li>
+            <li><b>L'image du magasin</b> : afficher la photo d'un concurrent, avec parfois son logo dans un coin, ça fait mauvais effet.</li>
+            <li><b>Le bon produit</b> : la photo d'un autre site montre souvent un modèle ou une référence un peu différente. Le client peut être induit en erreur.</li>
+            <li><b>La qualité</b> : les images récupérées au hasard sont souvent floues ou mal cadrées une fois imprimées.</li>
+          </ul>
+          <p><b>En cas de doute :</b> garde le pictogramme, ou demande à ton responsable.</p>
+        </div>
+      </details>
       <div class="status" id="pasteHint" role="status" style="color:var(--bleu-f);font-weight:600"></div>
       <button type="button" class="link danger" id="clear" hidden>Vider la liste</button>
     </fieldset>
