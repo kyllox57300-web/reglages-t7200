@@ -32,13 +32,16 @@ L'outil **Affiches prix cuisine** n'est **pas** ici : il reste sur le serveur du
   DIN Next LT Pro pour les textes. Polices payantes : substitut en ligne **Bebas Neue** (titres).
 - **Ton** : « on se parle cash » — phrases courtes, directes, une pointe d'humour.
 - **Bloc prix** : courant = blanc sur bleu ; Arrivages = blanc sur rouge, « STOCK LIMITÉ ! » sur gris, garanties en noir sur orange.
-- **Affiche Arrivages 80 × 120** : marge bleue, étiquette « ARRIVAGES » rouge inclinée, visuel, pavé prix, libellé, date, logo en bas à droite.
 - **Facebook (gabarit obligatoire)** : 3 bandes jaunes en haut à gauche sur fond blanc, **logo en bas et centré**.
   → L'outil `photos/` ne suit pas encore ce gabarit (logo en haut à gauche) : à adapter quand demandé.
 
-## Styles d'affiches (outil `affiches/`, choix « Couleurs »)
-- Automatique : **orange** pour le bandeau ARRIVAGE, **noir et jaune** pour BLACK FRIDAY, bleu et jaune sinon.
-- « Arrivages de la charte » : modèle bleu et rouge d'après l'affiche 80 × 120.
+## Affiches grand format (outil `affiches/`) : 4 modèles validés par le patron
+Seules 4 opérations existent, et **la couleur est imposée par l'opération** (pas de choix « Couleurs ») :
+- **Black Friday** : noir et jaune ;
+- **Soldes** : bleu et jaune ;
+- **Promo** : orange ;
+- **Déstockage** : bleu et jaune.
+Les autres bandeaux (Arrivage, Prix choc, texte libre…) et le modèle « Arrivages de la charte » ont été retirés : ne pas les remettre sans demande.
 
 ## T7200
 Réglages validés : bâche intissée 1000 mm = Enhanced Matte Paper ; adhésif Folex SIVC 914 mm = Premium Glossy Photo Paper ;
