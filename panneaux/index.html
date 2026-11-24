@@ -505,8 +505,23 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .sign.wide.noemo .g-text,.sign.wide.noemo .g-detail{grid-column:1;text-align:center}
 .sign.wide .g-detail{font-size:calc(7.5*var(--u)*var(--k,1))}
 .sign.wide .g-foot{grid-column:2;grid-row:3;font-size:calc(4.4*var(--u));padding:calc(2.6*var(--u)) calc(8*var(--u))}
+/* Économie d'encre : fond blanc partout, la couleur seulement sur les lettres et des filets fins */
+.sign.eco{--c:var(--bleu-f);--acc:var(--jaune)}
+.sign.eco.bf{--c:#111}
+.sign.eco.alert{--c:var(--rouge);--acc:var(--rouge)}
+.sign.eco .g-top{background:#fff;border-bottom:calc(1.2*var(--u)) solid var(--c);padding:calc(5*var(--u)) 0}
+.sign.eco .g-top img{padding:0;border-radius:0}
+.sign.eco .g-band{background:none;transform:none;width:auto;margin:calc(4*var(--u)) calc(14*var(--u)) 0;padding:0 0 calc(2*var(--u));border-bottom:calc(2.4*var(--u)) solid var(--acc)}
+.sign.eco .g-band span{color:var(--c)}
+.sign.eco .g-detail{background:none;color:var(--c);border:calc(.8*var(--u)) solid var(--c)}
+.sign.eco .g-foot{background:none;color:var(--c);border-top:calc(.8*var(--u)) solid var(--c)}
+.sign.eco.wide .g-top{border-bottom:0;border-right:calc(1.2*var(--u)) solid var(--c);padding:0 calc(7*var(--u))}
+.sign.eco.wide .g-band{margin:calc(6*var(--u)) calc(12*var(--u)) 0;padding:0 0 calc(1.5*var(--u))}
+.sign.eco.wide .g-foot{margin:0 calc(8*var(--u));width:auto}
 /* Pendant la mesure, le contenu part du haut pour que le débordement soit bien compté */
 .sign.measuring .g-body{justify-content:flex-start;align-content:start}
+.check span{display:flex;gap:8px;align-items:center}
+.check input{width:18px;height:18px;margin:0}
 .tip{font-size:.82rem;color:var(--fg);background:#fff8e6;border:1px solid #f3d38a;border-radius:6px;padding:8px 10px;margin:0}
 
 @media (max-width:820px){ .app{grid-template-columns:minmax(0,1fr)} .ui{border-right:0;padding-right:max(16px,env(safe-area-inset-right,0px))} .stage{padding:16px} }
@@ -564,6 +579,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
           <option value="2800x1000">Bandeau de rack 280 × 100 cm (T7200)</option>
         </select>
       </label>
+      <label class="check"><span><input type="checkbox" id="eco"> Économie d'encre (fond blanc)</span><small>La couleur reste sur les lettres et quelques traits : beaucoup moins d'encre, surtout en grand format.</small></label>
       <p class="tip" id="wideTip" hidden>Bandeau 280 × 100 : sur la T7200, mets la <b>bâche 1000 mm</b>, puis dans les propriétés de l'imprimante
         choisis une <b>taille définie par l'utilisateur de 1000 × 2800 mm</b> (au lieu de A0). Imprime le PDF en <b>« Taille réelle »</b> depuis Acrobat.</p>
       <div class="btns">
@@ -727,6 +743,7 @@ function render(){
   s.classList.toggle("alert", tpl.tone === "alert");
   const th = $("theme").value;
   s.classList.toggle("bf", th === "noir" || (th !== "bc" && tpl.tone === "bf"));
+  s.classList.toggle("eco", $("eco").checked);
   s.style.setProperty("--efs", wide ? 34 : land ? 40 : 54);
   shrink(); fit();
 }
@@ -770,6 +787,8 @@ async function makePdf(){
   finally{ holder.remove(); btn.disabled = false; }
 }
 
+// Le bandeau de rack passe en économie d'encre d'office (décochable)
+$("format").addEventListener("change", () => { const [w, h] = $("format").value.split("x").map(Number); if(w / h > 2) $("eco").checked = true; });
 $("reset").addEventListener("click", () => { fillTpl(); render(); });
 $("form").addEventListener("input", render);
 $("form").addEventListener("change", render);

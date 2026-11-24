@@ -43,4 +43,4 @@ L'outil **Affiches prix cuisine** n'est **pas** ici : il reste sur le serveur du
 ## T7200
 Réglages validés : bâche intissée 1000 mm = Enhanced Matte Paper ; adhésif Folex SIVC 914 mm = Premium Glossy Photo Paper ;
 taille A0, « Ajuster à la largeur » décoché, impression des PDF en « Taille réelle » depuis Acrobat.
-Bandeau de rack 280 × 100 : bâche 1000 mm, taille définie par l'utilisateur 1000 × 2800 mm, « Taille réelle ».
+Bandeau de rack 280 × 100 (économie d'encre cochée d'office : fond blanc) : bâche 1000 mm, taille définie par l'utilisateur 1000 × 2800 mm, « Taille réelle ».
