@@ -554,6 +554,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .poster.cat .p-foot{order:4;background:var(--jaune);color:#111;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:calc(46*var(--u));letter-spacing:.03em;text-align:left;
   padding:calc(14*var(--u)) calc(40*var(--u)) calc(8*var(--u));margin-top:-2px}
 .poster.cat .p-foot:empty{display:none}
+.poster.cat .p-main,.poster.cat .p-grid,.poster.cat .p-price{margin-top:calc(-3*var(--u))}
+/* Bandeau vide : on le retire, sur tous les modèles */
+.poster.noband .p-band{display:none}
+.poster.noband:not(.cat) .p-main{padding-top:calc(60*var(--u))}
 /* Seul le centre rétrécit : le bandeau, la date et le logo gardent leur taille */
 .poster.cat .p-band,.poster.cat .p-price,.poster.cat .p-foot,.poster.cat .p-logo{flex:none}
 .poster.cat .p-logo{order:5;justify-content:flex-end;padding:calc(26*var(--u)) 0 calc(30*var(--u))}
@@ -921,6 +925,7 @@ function frameOf(poster, G){
   const cat = G.theme === "cat";
   poster.classList.toggle("arr", arr && !cat);
   poster.classList.toggle("cat", cat);
+  poster.classList.toggle("noband", !G.band.trim());
   poster.classList.toggle("bf", !arr && !cat && (G.theme === "noir" || (G.theme !== "bc" && /BLACK\s*FRIDAY/i.test(G.band))));
   poster.querySelector(".p-foot").textContent = footText(G);
   const fr = document.createElement("div"); fr.className = "frame"; fr.appendChild(poster); return fr;
