@@ -8,7 +8,7 @@ pour pouvoir aussi être copié sur le serveur du magasin et marcher sans Intern
 |---|---|
 | `/` | Page d'accueil, outils rangés par usage |
 | `affiches/` | Affiches grand format (export Excel ou à la main, remise %, tête de gondole, PDF A4 → A0) |
-| `panneaux/` | Panneaux magasin (modèles + « Mes modèles » mémorisés sur le PC) |
+| `panneaux/` | Panneaux magasin (modèles + « Mes modèles » mémorisés sur le PC ; A4, A3, A0, bandeau de rack 280 × 100) |
 | `etiquettes/` | Étiquettes de bacs bleues (pictogramme Lucide ou photo, logo, planches A4) |
 | `photos/` | Photos Facebook (habillage d'une photo de rayon, partage téléphone / enregistrement PC) |
 | `qr/` | Feuilles QR à poser en rayon (mémorisées, réimpression, date d'impression) |
@@ -43,3 +43,4 @@ L'outil **Affiches prix cuisine** n'est **pas** ici : il reste sur le serveur du
 ## T7200
 Réglages validés : bâche intissée 1000 mm = Enhanced Matte Paper ; adhésif Folex SIVC 914 mm = Premium Glossy Photo Paper ;
 taille A0, « Ajuster à la largeur » décoché, impression des PDF en « Taille réelle » depuis Acrobat.
+Bandeau de rack 280 × 100 : bâche 1000 mm, taille définie par l'utilisateur 1000 × 2800 mm, « Taille réelle ».
