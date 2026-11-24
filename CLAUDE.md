@@ -36,12 +36,14 @@ L'outil **Affiches prix cuisine** n'est **pas** ici : il reste sur le serveur du
   → L'outil `photos/` ne suit pas encore ce gabarit (logo en haut à gauche) : à adapter quand demandé.
 
 ## Affiches grand format (outil `affiches/`) : 4 modèles validés par le patron
-Seules 4 opérations existent, et **la couleur est imposée par l'opération** (pas de choix « Couleurs ») :
+4 opérations, **la couleur est imposée par l'opération** :
 - **Black Friday** : noir et jaune ;
 - **Soldes** : bleu et jaune ;
 - **Promo** : orange ;
 - **Déstockage** : bleu et jaune.
-Les autres bandeaux (Arrivage, Prix choc, texte libre…) et le modèle « Arrivages de la charte » ont été retirés : ne pas les remettre sans demande.
+Plus un modèle libre **« Autre texte »** : le seul où l'équipe choisit le texte du bandeau (vide = sans bandeau)
+et les couleurs (bleu et jaune, noir et jaune, orange). À garder.
+Les autres bandeaux (Arrivage, Prix choc…) et le modèle « Arrivages de la charte » ont été retirés : ne pas les remettre sans demande.
 
 ## T7200
 Réglages validés : bâche intissée 1000 mm = Enhanced Matte Paper ; adhésif Folex SIVC 914 mm = Premium Glossy Photo Paper ;

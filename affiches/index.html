@@ -531,6 +531,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .p-foot{background:var(--bleu);color:#fff;padding:calc(22*var(--u)) calc(50*var(--u));text-align:center;font-weight:700;font-size:calc(30*var(--u));line-height:1.35;min-height:calc(40*var(--u))}
 .p-foot:empty{padding:calc(14*var(--u))}
 
+/* Bandeau vide (Autre texte sans texte) : on le retire */
+.poster.noband .p-band{display:none}
+.poster.noband .p-main{padding-top:calc(60*var(--u))}
 /* Couleurs « Promo » : même mise en page, en orange, blanc et noir */
 .poster.arr{--orange:#f0641e}
 .poster.arr .p-band{background-color:var(--orange);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='250' viewBox='0 0 1000 250' preserveAspectRatio='none'%3E%3Cpolygon points='-330,0 -290,0 -423,250 -463,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='-220,0 -180,0 -313,250 -353,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='-110,0 -70,0 -203,250 -243,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='0,0 40,0 -93,250 -133,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='110,0 150,0 17,250 -23,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='220,0 260,0 127,250 87,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='330,0 370,0 237,250 197,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='440,0 480,0 347,250 307,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='550,0 590,0 457,250 417,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='660,0 700,0 567,250 527,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='770,0 810,0 677,250 637,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='880,0 920,0 787,250 747,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='990,0 1030,0 897,250 857,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='1100,0 1140,0 1007,250 967,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='1210,0 1250,0 1117,250 1077,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='1320,0 1360,0 1227,250 1187,250' fill='rgba%28255,255,255,0.18%29'/%3E%3Cpolygon points='1430,0 1470,0 1337,250 1297,250' fill='rgba%28255,255,255,0.18%29'/%3E%3C/svg%3E")}
@@ -640,9 +643,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
           <option value="SOLDES">Soldes · bleu et jaune</option>
           <option value="PROMO">Promo · orange</option>
           <option value="DÉSTOCKAGE">Déstockage · bleu et jaune</option>
+          <option value="">Autre texte… · à ta façon</option>
         </select>
-        <small>Les couleurs vont avec l'opération : elles ne se changent pas.</small>
+        <small id="typeHint">Les couleurs vont avec l'opération : elles ne se changent pas.</small>
       </label>
+      <label id="customWrap" hidden>Texte du bandeau<small>laisse vide pour une affiche sans bandeau</small><input type="text" id="custom" maxlength="24" placeholder="ex. PRIX CHOC"></label>
+      <label id="themeWrap" hidden>Couleurs<select id="theme"><option value="bc">Bleu et jaune</option><option value="noir">Noir et jaune</option><option value="arr">Orange</option></select></label>
       <div class="row2">
         <label>Prix
           <select id="op"><option value="pct">Remise en %</option><option value="none">Prix normal</option></select>
@@ -756,7 +762,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 const $ = id => document.getElementById(id);
 /* Couleurs imposées par l'opération */
 const THEMES = {"BLACK FRIDAY": "noir", "SOLDES": "bc", "PROMO": "arr", "DÉSTOCKAGE": "bc"};
-const GLOBAL = ["mode","type","op","rem","round","pct","from","to","stock","layout","per","format"];
+const GLOBAL = ["mode","type","custom","theme","op","rem","round","pct","from","to","stock","layout","per","format"];
 const KEY = "affiches-gf-v2", PKEY = "affiches-produits-v1";
 let items = [], cur = -1, products = [];
 
@@ -775,10 +781,10 @@ function roundPrice(x, mode){
   return Math.round(x * 100) / 100;
 }
 const g = () => ({
-  band: THEMES[$("type").value] ? $("type").value : "BLACK FRIDAY",
+  band: $("type").value || $("custom").value.trim() || " ",
   op: $("op").value, rem: Math.min(Math.max(num($("rem").value) || 0, 0), 95), round: $("round").value,
   pct: $("pct").checked, from: $("from").value, to: $("to").value, stock: $("stock").checked,
-  layout: $("layout").value, per: +$("per").value, format: $("format").value, theme: THEMES[$("type").value] || "noir"
+  layout: $("layout").value, per: +$("per").value, format: $("format").value, theme: THEMES[$("type").value] || $("theme").value
 });
 
 /* Prix d'un article : calculé depuis le prix magasin, sauf si modifié à la main */
@@ -889,6 +895,7 @@ function frameOf(poster, G){
   // Couleurs fixées par l'opération : noir pour le Black Friday, orange pour la Promo, bleu et jaune sinon
   poster.classList.toggle("arr", G.theme === "arr");
   poster.classList.toggle("bf", G.theme === "noir");
+  poster.classList.toggle("noband", !G.band.trim());
   poster.querySelector(".p-foot").textContent = footText(G);
   const fr = document.createElement("div"); fr.className = "frame"; fr.appendChild(poster); return fr;
 }
@@ -943,7 +950,9 @@ function shrinkTg(p){
   });
 }
 function update(){
-  const G = g();
+  const G = g(), free = $("type").value === "";
+  $("customWrap").hidden = !free; $("themeWrap").hidden = !free;
+  $("typeHint").textContent = free ? "Modèle libre : tu choisis le texte du bandeau et les couleurs." : "Les couleurs vont avec l'opération : elles ne se changent pas.";
   $("remWrap").hidden = G.op !== "pct"; $("roundWrap").hidden = G.op !== "pct";
   $("perWrap").hidden = G.layout !== "tg";
   const [w, h] = G.format.split("x").map(Number);
@@ -991,7 +1000,8 @@ function load(){
   try{
     const d = JSON.parse(localStorage.getItem(KEY) || "null"); if(!d) return;
     GLOBAL.forEach(id => { const el = $(id); if(!(id in d)) return; if(el.type === "checkbox") el.checked = d[id]; else el.value = d[id]; });
-    if(!THEMES[$("type").value]) $("type").value = "BLACK FRIDAY"; // ancienne opération mémorisée (Arrivage…) : on revient au Black Friday
+    if(d.type && !THEMES[d.type]) $("type").value = "BLACK FRIDAY"; // ancienne opération mémorisée (Arrivage…) : on revient au Black Friday
+    if(!["bc","noir","arr"].includes($("theme").value)) $("theme").value = "bc";
     items = (d.items || []).map(it => ({...it, photo: null})); cur = items.length ? 0 : -1;
   }catch(e){}
 }
