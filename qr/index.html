@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Feuilles QR calculateurs</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
-<style id="pagesize">@page{size:148mm 210mm;margin:0}</style>
+<style>@page{size:210mm 297mm;margin:0}</style>
 <script>//---------------------------------------------------------------------
 //
 // QR Code Generator for JavaScript
@@ -2340,6 +2340,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .saved button{all:unset;cursor:pointer;font-size:.8rem;font-weight:600;color:var(--bleu);padding:4px 6px;border-radius:5px}
 .saved button.del{color:var(--muted)}
 .saved button:focus-visible{outline:2px solid var(--bleu)}
+.fhint{color:var(--muted);font-size:.8rem;margin-top:-4px}
 .stage{padding:24px;display:flex;justify-content:center;align-items:flex-start}
 .frame{box-shadow:0 6px 30px rgba(10,40,70,.18);background:#fff;flex:none;overflow:hidden}
 
@@ -2358,13 +2359,17 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .s-foot{margin-top:auto;width:100%;display:flex;justify-content:space-between;padding:calc(3*var(--u)) calc(8*var(--u));font-size:calc(2.8*var(--u));color:#777;border-top:1px solid #ddd}
 
 @media (max-width:820px){ .app{grid-template-columns:minmax(0,1fr)} .ui{border-right:0;padding-right:max(16px,env(safe-area-inset-right,0px))} .stage{padding:16px} }
+/* Impression : toujours sur une feuille A4 (l'imprimante du bureau) ; A5 = 2 par feuille, A6 = 4, à découper */
+#printArea{display:none}
+.pa-page{position:relative;width:210mm;height:297mm;overflow:hidden;background:#fff}
+.pa-page .sheet{position:absolute;transform-origin:center center}
+.pa-cut{position:absolute;border:0 dashed #9aa4ad}
+.pa-cut.h{left:0;right:0;top:148.5mm;border-top-width:.3mm}
+.pa-cut.v{top:0;bottom:0;left:105mm;border-left-width:.3mm}
 @media print{
   html,body{background:#fff}
-  .ui{display:none!important}
-  .app{display:block;min-height:0}
-  .stage{padding:0;display:block}
-  .frame{box-shadow:none;width:auto!important;height:auto!important}
-  .sheet{transform:none!important}
+  .app{display:none!important}
+  #printArea{display:block}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
@@ -2408,8 +2413,9 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
       </label>
       <label id="wrapW" hidden>Poids du sac<select id="w"><option value="35">35 kg</option><option value="25">25 kg</option></select></label>
       <label>Format de la feuille
-        <select id="format"><option value="148x210">A5 (porte-étiquette, présentoir)</option><option value="210x297">A4</option><option value="105x148">A6 (petite étiquette)</option></select>
+        <select id="format"><option value="148x210">A5 (porte-étiquette, présentoir) · 2 par feuille A4</option><option value="210x297">A4 · 1 par feuille</option><option value="105x148">A6 (petite étiquette) · 4 par feuille A4</option></select>
       </label>
+      <small class="fhint" id="fhint"></small>
       <div class="btns">
         <button type="button" class="btn" id="print">Imprimer</button>
         <button type="button" class="btn ghost" id="save">Enregistrer</button>
@@ -2437,6 +2443,8 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
     </div>
   </div>
 </div>
+
+<div id="printArea" aria-hidden="true"></div>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -2477,8 +2485,28 @@ function render(d = current(), date = today()){
   $("sDate").textContent = "Imprimée le " + date;
   const [w, h] = d.format.split("x").map(Number);
   $("sheet").style.setProperty("--u", (w / 148) + "mm");
-  $("pagesize").textContent = `@page{size:${w}mm ${h}mm;margin:0}`;
+  $("fhint").textContent = {148: "Imprime sur du A4 normal : 2 feuilles A5 identiques, à découper sur les pointillés (la 2e sert de rechange).",
+    105: "Imprime sur du A4 normal : 4 étiquettes A6 identiques, à découper sur les pointillés.", 210: "Imprime sur du A4 normal."}[w];
+  buildPrint(w);
   fit();
+}
+/* Planche A4 à imprimer : copies de la feuille, légèrement réduites pour rester dans la zone imprimable */
+function buildPrint(w){
+  const pa = $("printArea"); pa.innerHTML = "";
+  const page = document.createElement("div"); page.className = "pa-page"; pa.appendChild(page);
+  // [largeur de la copie en mm, rotation, centres des copies]
+  const L = w === 210 ? [201.6, 0, [[105, 148.5]]]
+          : w === 148 ? [139, 90, [[105, 74.25], [105, 222.75]]]
+          : [98.7, 0, [[52.5, 74.25], [157.5, 74.25], [52.5, 222.75], [157.5, 222.75]]];
+  const [cw, rot, centers] = L, ch = cw * 210 / 148;
+  centers.forEach(([cx, cy]) => {
+    const c = $("sheet").cloneNode(true); c.removeAttribute("id"); c.querySelectorAll("[id]").forEach(x => x.removeAttribute("id"));
+    c.style.setProperty("--u", (cw / 148) + "mm");
+    c.style.left = (cx - cw / 2) + "mm"; c.style.top = (cy - ch / 2) + "mm"; c.style.transform = rot ? `rotate(${rot}deg)` : "none";
+    page.appendChild(c);
+  });
+  if(w !== 210){ const hl = document.createElement("div"); hl.className = "pa-cut h"; page.appendChild(hl); }
+  if(w === 105){ const vl = document.createElement("div"); vl.className = "pa-cut v"; page.appendChild(vl); }
 }
 function fit(){
   const s = $("sheet"), stage = $("stage"); s.style.transform = "none";
@@ -2515,8 +2543,6 @@ $("print").addEventListener("click", () => { upsert(); render(); window.print();
 $("form").addEventListener("input", () => render());
 $("form").addEventListener("change", () => render());
 window.addEventListener("resize", fit);
-window.addEventListener("beforeprint", () => { $("sheet").style.transform = "none"; });
-window.addEventListener("afterprint", fit);
 if(document.fonts) document.fonts.ready.then(fit);
 drawSaved(); render();
 </script>

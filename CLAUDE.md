@@ -11,7 +11,7 @@ pour pouvoir aussi être copié sur le serveur du magasin et marcher sans Intern
 | `panneaux/` | Panneaux magasin (modèles + « Mes modèles » mémorisés sur le PC ; A4, A3, A0, bandeau de rack 280 × 100) |
 | `etiquettes/` | Étiquettes de bacs bleues (pictogramme Lucide ou photo, logo, taille d'écriture au choix, planches A4) |
 | `photos/` | Photos Facebook (habillage d'une photo de rayon, partage téléphone / enregistrement PC) |
-| `qr/` | Feuilles QR à poser en rayon (mémorisées, réimpression, date d'impression) |
+| `qr/` | Feuilles QR à poser en rayon (mémorisées, réimpression, date d'impression ; toujours imprimées sur A4 : A5 = 2 par feuille, A6 = 4) |
 | `calcul/` | Calculateurs clients (calcul simple au m², lino, peinture, BA13, béton…) |
 | `t7200/` | Réglages Epson SureColor T7200 (`bache.ssf`, `adhesif.ssf`) |
 
