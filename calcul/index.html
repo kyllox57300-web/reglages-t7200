@@ -99,23 +99,33 @@ const CALCS = {
       if(v.plinthe && v.per) L.push(`Plinthes : ${ceil(v.per / 2.4)} de 2,40 m (${fmt(v.per)} m de tour, sans déduire les portes)`);
       if(v.sc) L.push(`Sous-couche : ${fmt(v.s * 1.05)} m², soit ${ceil(v.s * 1.05 / 15)} rouleau(x) de 15 m²`);
       return {big: `${n} paquet${n > 1 ? "s" : ""}`, lines: L}; }},
-  lino: {title: "Combien de mètres de lino ?", menu: "Lino, sol en rouleau", desc: "Au mètre, selon la largeur du rouleau",
-    fields: f => [f.room(), f.select("lw", "Largeur du rouleau", [["2", "2 m"], ["3", "3 m"], ["4", "4 m"], ["5", "5 m"]], P("lw") || "4"),
+  lino: {title: "Combien de mètres de lino ?", menu: "Lino, sol en rouleau", desc: "Au mètre, rouleau de 1 à 4 m de large",
+    fields: f => [f.room(), f.select("lw", "Largeur du rouleau", [["auto", "Je ne sais pas : conseillez-moi"], ["1", "1 m"], ["2", "2 m"], ["3", "3 m"], ["4", "4 m"]],
+        ["1", "2", "3", "4"].includes(P("lw")) ? P("lw") : "auto"),
       f.num("mg", "Marge par coupe", "cm", 10, "pour l'ajustement le long des murs")],
     calc: v => {
-      const R = +v.lw || 4, m = (v.mg || 0) / 100;
-      if(!v.L || !v.l || !R) return null;
-      // On essaie les deux sens de pose et on garde celui qui demande le moins de lino
-      const plan = (len, wid) => { const n = ceil(wid / R); return {n, each: len + m, total: n * (len + m), len, wid}; };
-      const a = plan(v.L, v.l), b = plan(v.l, v.L);
-      const best = (b.total < a.total - 1e-9 || (Math.abs(b.total - a.total) < 1e-9 && b.n < a.n)) ? b : a;
-      const ml = Math.ceil(best.total * 10 - 1e-9) / 10;
+      const m = (v.mg || 0) / 100;
+      if(!v.L || !v.l) return null;
+      // Pour une largeur : on essaie les deux sens de pose et on garde celui qui demande le moins de lino
+      const plan = R => {
+        const one = (len, wid) => { const n = ceil(wid / R); return {n, each: len + m, total: n * (len + m)}; };
+        const a = one(v.L, v.l), b = one(v.l, v.L);
+        const best = (b.total < a.total - 1e-9 || (Math.abs(b.total - a.total) < 1e-9 && b.n < a.n)) ? b : a;
+        const ml = Math.ceil(best.total * 10 - 1e-9) / 10;
+        return {...best, R, ml, m2: ml * R};
+      };
+      const all = [1, 2, 3, 4].map(plan);
+      // Le conseil : le moins de raccords possible, puis le moins de lino acheté (en m²)
+      const rec = all.slice().sort((x, y) => x.n - y.n || x.m2 - y.m2)[0];
+      const desc = p => p.n === 1 ? `une seule coupe de ${fmt(p.each)} m, sans raccord` : `${p.n} lés de ${fmt(p.each)} m, ${p.n - 1} raccord${p.n > 2 ? "s" : ""}`;
+      const pick = v.lw === "auto" || !v.lw ? rec : all.find(p => p.R === +v.lw) || rec;
       const L = [];
-      if(best.n === 1) L.push(`Une seule coupe de ${fmt(R)} m de large × ${fmt(best.each)} m de long : pas de raccord`);
-      else L.push(`${best.n} lés de ${fmt(best.each)} m dans le rouleau de ${fmt(R)} m, avec ${best.n - 1} raccord${best.n > 2 ? "s" : ""}`);
-      L.push(`Surface achetée : ${fmt(ml * R, 1)} m² pour une pièce de ${fmt(v.L * v.l, 1)} m²`);
-      if(best.n > 1 && R < 5) L.push("Astuce : un rouleau plus large peut éviter le raccord, demandez à un vendeur");
-      return {big: `${fmt(ml, 1)} m de lino`, lines: L};
+      if(v.lw === "auto" || !v.lw) L.push(`Notre conseil : le rouleau de ${pick.R} m de large`);
+      L.push(`${pick.R} m de large : ${desc(pick)}`);
+      L.push(`Surface achetée : ${fmt(pick.m2, 1)} m² pour une pièce de ${fmt(v.L * v.l, 1)} m²`);
+      if(pick !== rec) L.push(`Conseil : en ${rec.R} m de large, ${desc(rec)}, soit ${fmt(rec.ml, 1)} m (${fmt(rec.m2, 1)} m²)`);
+      L.push("Autres largeurs : " + all.filter(p => p !== pick).map(p => `${p.R} m → ${fmt(p.ml, 1)} m${p.n > 1 ? ` (${p.n - 1} raccord${p.n > 2 ? "s" : ""})` : ""}`).join(" · "));
+      return {big: `${fmt(pick.ml, 1)} m de lino en ${pick.R} m de large`, lines: L};
     }},
   peinture: {title: "Combien de pots de peinture ?", menu: "Peinture", desc: "Murs et plafond",
     fields: f => [f.room(), f.num("hm", "Hauteur sous plafond", "m", 2.5), f.row(f.num("portes", "Portes", "", 1), f.num("fen", "Fenêtres", "", 1)),

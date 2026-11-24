@@ -12,7 +12,7 @@ pour pouvoir aussi être copié sur le serveur du magasin et marcher sans Intern
 | `etiquettes/` | Étiquettes de bacs bleues (pictogramme Lucide ou photo, logo en haut à droite ou au milieu, taille d'écriture au choix, planches A4) |
 | `photos/` | Photos Facebook (habillage d'une photo de rayon, partage téléphone / enregistrement PC) |
 | `qr/` | Feuilles QR à poser en rayon (mémorisées avec leur date d'impression dans la liste, pas sur la feuille ; réimpression ; toujours imprimées sur A4 : A5 = 2 par feuille, A6 = 4) |
-| `calcul/` | Calculateurs clients (calcul simple au m², lino, peinture, BA13, béton…) |
+| `calcul/` | Calculateurs clients (calcul simple au m², lino — rouleaux de 1 à 4 m, choisis par le client ou conseillés, un seul QR —, peinture, BA13, béton…) |
 | `t7200/` | Réglages Epson SureColor T7200 (`bache.ssf`, `adhesif.ssf`) |
 
 L'outil **Affiches prix cuisine** n'est **pas** ici : il reste sur le serveur du magasin, que l'équipe met à jour.
