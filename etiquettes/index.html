@@ -47,6 +47,8 @@ body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:15px;l
 .ui h1{margin:6px 0 2px;font-size:1.35rem}
 .ui header p{margin:0;color:var(--muted);font-size:.88rem}
 fieldset{border:1px solid var(--line);border-radius:8px;padding:12px 14px 14px;margin:0;display:flex;flex-direction:column;gap:10px;min-width:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{color:var(--muted);font-size:.8rem;margin-top:-4px}
 legend{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;padding:0 4px}
 label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:600}
 label small{font-weight:400;color:var(--muted)}
@@ -191,6 +193,11 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
           <option value="130x55">Grandes · 130 × 55 mm (5 par feuille)</option>
         </select>
       </label>
+      <div class="row2">
+        <label>Écriture du nom<select id="fn"><option value="0.75">Petite</option><option value="1" selected>Normale</option><option value="1.25">Grande</option><option value="1.5">Très grande</option></select></label>
+        <label>Écriture en gros<select id="fb"><option value="0.75">Petite</option><option value="1" selected>Normale</option><option value="1.25">Grande</option><option value="1.5">Très grande</option></select></label>
+      </div>
+      <small class="hint">Pour toutes les étiquettes. Si un texte est trop long pour l'étiquette, il est réduit tout seul pour rester entier.</small>
       <label class="check" style="flex-direction:row;align-items:center;gap:8px;font-weight:500"><input type="checkbox" id="logo" checked> Logo Brico Cash sur les étiquettes</label>
       <button type="button" class="btn" id="print" disabled>Imprimer</button>
       <div class="status" id="pstatus">Imprimante de bureau : Marges <b>Aucune</b>, <b>Graphiques d'arrière-plan</b> coché, Échelle 100 %.</div>
@@ -236,8 +243,8 @@ function guessIcon(name){
 }
 
 /* ===== Mémoire sur ce PC (photos réduites comprises) ===== */
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify({items, size: $("size").value, siteFirst: $("siteFirst").checked, logo: $("logo").checked})); $("pstatus").dataset.saved = "1"; }catch(e){ $("pstatus").textContent = "Liste trop lourde pour être mémorisée : retire quelques photos."; } }
-try{ const d = JSON.parse(localStorage.getItem(KEY) || "null"); if(d){ items = d.items || []; if(d.size) $("size").value = d.size; if(d.siteFirst === false) $("siteFirst").checked = false; if(d.logo === false) $("logo").checked = false; } }catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({items, size: $("size").value, siteFirst: $("siteFirst").checked, logo: $("logo").checked, fn: $("fn").value, fb: $("fb").value})); $("pstatus").dataset.saved = "1"; }catch(e){ $("pstatus").textContent = "Liste trop lourde pour être mémorisée : retire quelques photos."; } }
+try{ const d = JSON.parse(localStorage.getItem(KEY) || "null"); if(d){ items = d.items || []; if(d.size) $("size").value = d.size; if(d.siteFirst === false) $("siteFirst").checked = false; if(d.logo === false) $("logo").checked = false; if(d.fn) $("fn").value = d.fn; if(d.fb) $("fb").value = d.fb; } }catch(e){}
 
 /* Devine la caractéristique à mettre en gros (Ø 100, 14 W, 2,5 m…) à partir du libellé */
 function guessBig(lib){
@@ -313,7 +320,7 @@ function paint(){
   const mx = (210 - S.cols * lw - (S.cols - 1) * S.gap) / 2, my = Math.max(8, (297 - S.rows * lh - (S.rows - 1) * S.gap) / 2);
   for(let p = 0; p < all.length; p += perPage){
     const page = document.createElement("div"); page.className = "page";
-    Object.entries({"--cols": S.cols, "--lw": lw + "mm", "--lh": lh + "mm", "--gap": S.gap + "mm", "--mx": mx + "mm", "--my": my + "mm", "--nfs": S.nfs + "mm", "--bfs": S.bfs + "mm", "--imgw": S.imgw + "mm", "--logow": S.logow + "mm", "--tgap": (S.nfs * .5) + "mm", "--cut": (S.gap / 2) + "mm"}).forEach(([k, v]) => page.style.setProperty(k, v));
+    Object.entries({"--cols": S.cols, "--lw": lw + "mm", "--lh": lh + "mm", "--gap": S.gap + "mm", "--mx": mx + "mm", "--my": my + "mm", "--nfs": S.nfs * +$("fn").value + "mm", "--bfs": S.bfs * +$("fb").value + "mm", "--imgw": S.imgw + "mm", "--logow": S.logow + "mm", "--tgap": (S.nfs * .5) + "mm", "--cut": (S.gap / 2) + "mm"}).forEach(([k, v]) => page.style.setProperty(k, v));
     all.slice(p, p + perPage).forEach(it => {
       const withLogo = $("logo").checked;
       const l = document.createElement("div"); l.className = "lab" + (it.img || it.icon ? "" : " noimg") + (withLogo ? " logo" : "");
@@ -392,6 +399,8 @@ document.addEventListener("paste", e => {
 $("size").addEventListener("change", paint);
 $("siteFirst").addEventListener("change", save);
 $("logo").addEventListener("change", paint);
+$("fn").addEventListener("change", paint);
+$("fb").addEventListener("change", paint);
 $("form").addEventListener("submit", e => e.preventDefault());
 $("print").addEventListener("click", () => window.print());
 window.addEventListener("resize", fit);

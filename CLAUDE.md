@@ -9,7 +9,7 @@ pour pouvoir aussi être copié sur le serveur du magasin et marcher sans Intern
 | `/` | Page d'accueil, outils rangés par usage |
 | `affiches/` | Affiches grand format (export Excel ou à la main, remise %, tête de gondole, PDF A4 → A0) |
 | `panneaux/` | Panneaux magasin (modèles + « Mes modèles » mémorisés sur le PC ; A4, A3, A0, bandeau de rack 280 × 100) |
-| `etiquettes/` | Étiquettes de bacs bleues (pictogramme Lucide ou photo, logo, planches A4) |
+| `etiquettes/` | Étiquettes de bacs bleues (pictogramme Lucide ou photo, logo, taille d'écriture au choix, planches A4) |
 | `photos/` | Photos Facebook (habillage d'une photo de rayon, partage téléphone / enregistrement PC) |
 | `qr/` | Feuilles QR à poser en rayon (mémorisées, réimpression, date d'impression) |
 | `calcul/` | Calculateurs clients (calcul simple au m², lino, peinture, BA13, béton…) |
