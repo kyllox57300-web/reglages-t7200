@@ -8,7 +8,7 @@
 <style>
 /* Layout : aperçu en haut (téléphone) ou à droite (ordinateur), réglages dessous / à gauche */
 :root{
-  --bleu:#0a74bd; --bleu-f:#075a93; --jaune:#f7b232; --rouge:#c0392b;
+  --bleu:#0078bf; --bleu-f:#075a93; --jaune:#fab61f; --rouge:#c0392b;
   --bg:#eef2f6; --surface:#fff; --fg:#1b1b1b; --line:#d6dde4; --muted:#5b6673;
   --ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
@@ -255,9 +255,9 @@ function paint(ctx, p, W, H){
     ctx.translate(48 * u, bottom - bh); ctx.rotate(-4 * Math.PI / 180);
     ctx.shadowColor = "rgba(0,0,0,.3)"; ctx.shadowBlur = 20 * u; ctx.shadowOffsetY = 6 * u;
     const bfTag = isDark(p.tag);
-    ctx.fillStyle = bfTag ? "#111111" : "#f7b232"; rrect(ctx, 0, 0, bw, bh, 10 * u); ctx.fill();
+    ctx.fillStyle = bfTag ? "#111111" : "#fab61f"; rrect(ctx, 0, 0, bw, bh, 10 * u); ctx.fill();
     ctx.shadowColor = "transparent";
-    ctx.fillStyle = bfTag ? "#f7b232" : "#075a93"; ctx.textBaseline = "middle"; ctx.fillText(p.tag, 35 * u, bh / 2 + 4 * u);
+    ctx.fillStyle = bfTag ? "#fab61f" : "#075a93"; ctx.textBaseline = "middle"; ctx.fillText(p.tag, 35 * u, bh / 2 + 4 * u);
     ctx.restore();
   }
 
@@ -276,7 +276,7 @@ function paint(ctx, p, W, H){
     ctx.translate(x + bw / 2, y + bh / 2); ctx.rotate(3 * Math.PI / 180); ctx.translate(-bw / 2, -bh / 2);
     ctx.shadowColor = "rgba(0,0,0,.3)"; ctx.shadowBlur = 20 * u; ctx.shadowOffsetY = 6 * u;
     ctx.fillStyle = "#fff"; rrect(ctx, 0, 0, bw, bh, 22 * u); ctx.fill(); ctx.shadowColor = "transparent";
-    ctx.strokeStyle = "#f7b232"; ctx.lineWidth = 8 * u; rrect(ctx, 4 * u, 4 * u, bw - 8 * u, bh - 8 * u, 18 * u); ctx.stroke();
+    ctx.strokeStyle = "#fab61f"; ctx.lineWidth = 8 * u; rrect(ctx, 4 * u, 4 * u, bw - 8 * u, bh - 8 * u, 18 * u); ctx.stroke();
     ctx.fillStyle = "#075a93"; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
     const px = (bw - ew - cw - 8 * u) / 2;
     ctx.font = `${big}px "Archivo Black", "Arial Black", Arial, sans-serif`; ctx.fillText(e, px, 128 * u);
