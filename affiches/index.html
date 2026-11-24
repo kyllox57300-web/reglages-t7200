@@ -531,6 +531,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .p-foot{background:var(--bleu);color:#fff;padding:calc(22*var(--u)) calc(50*var(--u));text-align:center;font-weight:700;font-size:calc(30*var(--u));line-height:1.35;min-height:calc(40*var(--u))}
 .p-foot:empty{padding:calc(14*var(--u))}
 
+/* Prix rayon : le bandeau devient un simple trait jaune droit */
+.poster.stripe .p-band{transform:none;margin:calc(6*var(--u)) 0 0;padding:0;height:calc(34*var(--u));background-image:none;flex:none}
+.poster.stripe .p-band span{display:none}
+.poster.stripe .p-main{padding-top:calc(50*var(--u))}
 /* Bandeau vide (Autre texte sans texte) : on le retire */
 .poster.noband .p-band{display:none}
 .poster.noband .p-main{padding-top:calc(60*var(--u))}
@@ -643,6 +647,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
           <option value="SOLDES">Soldes · bleu et jaune</option>
           <option value="PROMO">Promo · orange</option>
           <option value="DÉSTOCKAGE">Déstockage · bleu et jaune</option>
+          <option value="RAYON">Prix rayon (prix normal, sans opération) · bleu et jaune</option>
           <option value="">Autre texte… · à ta façon</option>
         </select>
         <small id="typeHint">Les couleurs vont avec l'opération : elles ne se changent pas.</small>
@@ -761,7 +766,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 <script>
 const $ = id => document.getElementById(id);
 /* Couleurs imposées par l'opération */
-const THEMES = {"BLACK FRIDAY": "noir", "SOLDES": "bc", "PROMO": "arr", "DÉSTOCKAGE": "bc"};
+const THEMES = {"BLACK FRIDAY": "noir", "SOLDES": "bc", "PROMO": "arr", "DÉSTOCKAGE": "bc", "RAYON": "bc"};
 const GLOBAL = ["mode","type","custom","theme","op","rem","round","pct","from","to","stock","layout","per","format"];
 const KEY = "affiches-gf-v2", PKEY = "affiches-produits-v1";
 let items = [], cur = -1, products = [];
@@ -781,8 +786,10 @@ function roundPrice(x, mode){
   return Math.round(x * 100) / 100;
 }
 const g = () => ({
-  band: $("type").value || $("custom").value.trim() || " ",
-  op: $("op").value, rem: Math.min(Math.max(num($("rem").value) || 0, 0), 95), round: $("round").value,
+  // Prix rayon : pas de bandeau (juste un trait jaune) et toujours le prix normal
+  rayon: $("type").value === "RAYON",
+  band: $("type").value === "RAYON" ? "" : ($("type").value || $("custom").value.trim() || " "),
+  op: $("type").value === "RAYON" ? "none" : $("op").value, rem: Math.min(Math.max(num($("rem").value) || 0, 0), 95), round: $("round").value,
   pct: $("pct").checked, from: $("from").value, to: $("to").value, stock: $("stock").checked,
   layout: $("layout").value, per: +$("per").value, format: $("format").value, theme: THEMES[$("type").value] || $("theme").value
 });
@@ -895,7 +902,8 @@ function frameOf(poster, G){
   // Couleurs fixées par l'opération : noir pour le Black Friday, orange pour la Promo, bleu et jaune sinon
   poster.classList.toggle("arr", G.theme === "arr");
   poster.classList.toggle("bf", G.theme === "noir");
-  poster.classList.toggle("noband", !G.band.trim());
+  poster.classList.toggle("noband", !G.band.trim() && !G.rayon);
+  poster.classList.toggle("stripe", G.rayon);
   poster.querySelector(".p-foot").textContent = footText(G);
   const fr = document.createElement("div"); fr.className = "frame"; fr.appendChild(poster); return fr;
 }
@@ -952,7 +960,8 @@ function shrinkTg(p){
 function update(){
   const G = g(), free = $("type").value === "";
   $("customWrap").hidden = !free; $("themeWrap").hidden = !free;
-  $("typeHint").textContent = free ? "Modèle libre : tu choisis le texte du bandeau et les couleurs." : "Les couleurs vont avec l'opération : elles ne se changent pas.";
+  $("op").closest("label").hidden = G.rayon;
+  $("typeHint").textContent = G.rayon ? "Prix rayon : le prix normal, sans remise ni bandeau, juste un trait jaune sous le logo." : free ? "Modèle libre : tu choisis le texte du bandeau et les couleurs." : "Les couleurs vont avec l'opération : elles ne se changent pas.";
   $("remWrap").hidden = G.op !== "pct"; $("roundWrap").hidden = G.op !== "pct";
   $("perWrap").hidden = G.layout !== "tg";
   const [w, h] = G.format.split("x").map(Number);
@@ -1086,7 +1095,7 @@ async function makePdf(){
   if(!posters.length || btn.disabled) return;
   const G = g(), [w, h] = G.format.split("x").map(Number);
   const today = new Date().toISOString().slice(0, 10);
-  const name = (posters.length === 1 && items.length === 1 ? "affiche-" + slug(items[0].name || G.band) : `affiches-${slug(G.band)}-${posters.length}`) + `-${today}.pdf`;
+  const name = (posters.length === 1 && items.length === 1 ? "affiche-" + slug(items[0].name || G.band.trim() || "prix") : `affiches-${slug(G.band.trim() || "prix")}-${posters.length}`) + `-${today}.pdf`;
   // Choisir l'emplacement tout de suite (le navigateur l'exige au moment du clic)
   let handle = null;
   if(window.showSaveFilePicker){

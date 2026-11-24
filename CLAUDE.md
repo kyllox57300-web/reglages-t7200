@@ -41,6 +41,7 @@ L'outil **Affiches prix cuisine** n'est **pas** ici : il reste sur le serveur du
 - **Soldes** : bleu et jaune ;
 - **Promo** : orange ;
 - **Déstockage** : bleu et jaune.
+- **Prix rayon** (affiche de prix normal en rayon) : bleu et jaune, pas de bandeau (simple trait jaune sous le logo), toujours sans remise.
 Plus un modèle libre **« Autre texte »** : le seul où l'équipe choisit le texte du bandeau (vide = sans bandeau)
 et les couleurs (bleu et jaune, noir et jaune, orange). À garder.
 Les autres bandeaux (Arrivage, Prix choc…) et le modèle « Arrivages de la charte » ont été retirés : ne pas les remettre sans demande.
