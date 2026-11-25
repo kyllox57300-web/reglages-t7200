@@ -18,6 +18,7 @@ Interface, textes et explications **en français**, ton simple. Sur TikTok on tu
 | `logo/` | Logo du magasin (`brico-cash-fameck.jpg`, fond blanc). Ne jamais le modifier (couleurs, proportions, typo) : le poser sur une carte blanche ou un fond lisible. |
 | `exports/` | Vidéos finies : `exports/AAAA-MM-sujet/BricoCash_Fameck_<Sujet>_<durée>s_<avec\|sans>_musique.mp4` |
 | `polices/` | Polices de la charte : Bebas Neue (titres, substitut de Dreamwalker) et Barlow Condensed (textes, substitut de DIN Next). Licence OFL. |
+| `voix/` | Voix off de synthèse : modèle de voix française (Piper SIWIS, CC BY 4.0), scripts calés sur les plans. Voir `voix/LISEZMOI.md`. |
 | `outils/` | Moteur de montage « motion design » (textes animés, étiquettes prix, carton de fin) et générateur de musique maison. |
 | `../.claude/skills/ffmpeg-skill/` | Skill de montage local (kajisho5/ffmpeg-skill 4.7.1, MIT, relu : aucun envoi réseau). Voir `PROVENANCE.txt`. |
 
@@ -48,6 +49,12 @@ Le dépôt est **public** (obligatoire pour le site gratuit) : tout le monde peu
 - **Charte** : jaune `#fab61f`, bleu `#0078bf`, noir, blanc, gris `#575656`. Black Friday = noir et jaune ; rouge `#e30513` réservé aux Arrivages.
 - Rushs reçus en petite définition (envoi depuis la Photothèque iPhone) : le signaler et conseiller l'envoi depuis l'app **Fichiers**.
 - S'il manque des images, dire exactement quoi filmer : plan, durée (5 à 8 s), angle, téléphone **vertical**, **1080p 30 i/s**.
+
+## Voix off
+- Personne de l'équipe ne parle : utiliser la **voix de synthèse** (`outils/voix_off.py`, voir `voix/LISEZMOI.md`).
+- Phrases courtes, calées sur les plans (une phrase par plan produit, prix dits « onze quarante-cinq »), ton dynamique ; vérifier la prononciation (« Black Friday » s'écrit « Blak Fraille-dé »).
+- Livrer alors 4 versions : sans musique, avec musique, voix sans musique, voix et musique.
+- Toujours rappeler la **mention CC BY 4.0** à mettre dans la légende TikTok.
 
 ## Comment monter
 - **Opérations simples** (couper, recadrer en 9:16, logo, titre, musique, volume, export, contrôle) : skill `ffmpeg-skill`
