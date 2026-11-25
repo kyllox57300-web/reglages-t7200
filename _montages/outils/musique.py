@@ -113,7 +113,12 @@ def make(total, hits, end_t, out):
     with wave.open(out, 'wb') as w:
         w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes(pcm.tobytes())
 
+# Usage :
+#   python3 outils/musique.py DUREE_S DEBUT_CARTON_FIN_S sortie.wav   (ex. : 24.5 19.5 musique.wav)
+#   python3 outils/musique.py fichier.json sortie.wav                 (json : total, end, hits)
 if __name__ == '__main__':
-    meta = json.load(open(sys.argv[1]))
-    end_t = meta['end']
-    make(meta['total'], meta['hits'], end_t, sys.argv[2])
+    if sys.argv[1].endswith('.json'):
+        meta = json.load(open(sys.argv[1])); out = sys.argv[2]
+    else:
+        meta = {'total': float(sys.argv[1]), 'end': float(sys.argv[2]), 'hits': [0.0]}; out = sys.argv[3]
+    make(meta['total'], meta['hits'], meta['end'], out)

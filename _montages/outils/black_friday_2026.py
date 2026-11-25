@@ -96,6 +96,9 @@ def courte():
     plan.append(fin(t, 4.0, E, FL)); t += 4.0
     return plan, E, FL, SH, t
 
+# Usage (depuis la racine du dépôt) :
+#   python3 outils/black_friday_2026.py longue exports/2026-11-black-friday/longue.mp4   (depuis _montages/)
+#   python3 outils/black_friday_2026.py courte exports/2026-11-black-friday/courte.mp4
 if __name__ == '__main__':
     which, out = sys.argv[1], sys.argv[2]
     plan, E, FL, SH, total = {'longue': longue, 'courte': courte}[which]()

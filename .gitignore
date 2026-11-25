@@ -1,1 +1,8 @@
+*.pyc
+*.tmp
 *.zip
+*_work_*/
+.DS_Store
+.work/
+__pycache__/
+tmp/

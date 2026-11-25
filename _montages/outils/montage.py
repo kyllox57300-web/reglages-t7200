@@ -1,17 +1,18 @@
-# Montage TikTok Brico Cash Fameck : Black Friday
+# Moteur de montage « motion design » (textes animés, étiquettes prix, carton de fin)
+# utilisé pour la pub Black Friday 2026. Usage : voir black_friday_2026.py
 import subprocess, sys, math, json, os
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-S = os.path.dirname(os.path.abspath(__file__))
-MED = '/home/user/reglages-t7200/medias/'
-A = MED + '279D2F6D-CDBF-4A2C-A7B3-ECA9CE73C232.mov'
-B = MED + '4851D74E-E856-4466-B139-AE46E3560E51.mov'
-C = MED + '3B069A7E-88A4-4C7C-BAE6-88BA315DE138.mov'
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # dossier _montages
+MED = ROOT + '/rushs/2026-11-black-friday/'
+A = MED + 'produits-enduit-caisson-peinture-vasque.mov'
+B = MED + 'produits-vasque-cadre-caisson.mov'
+C = MED + 'facade-nuit-allees-outillage.mov'
 W, H, FPS = 1080, 1920, 30
 YEL = (250, 182, 31); BLUE = (0, 120, 191); BLACK = (17, 17, 17); WHITE = (255, 255, 255)
-BEBAS = S + '/fonts/BebasNeue-Regular.ttf'
-BARLOW = S + '/fonts/BarlowCondensed-ExtraBold.ttf'
+BEBAS = ROOT + '/polices/BebasNeue-Regular.ttf'
+BARLOW = ROOT + '/polices/BarlowCondensed-ExtraBold.ttf'
 NB = ' '
 MAXW = 840  # largeur max des textes (zone sûre TikTok)
 
@@ -154,7 +155,7 @@ def apply_vig(img, dim=0, dimlow=0):
     return Image.fromarray(a.clip(0, 255).astype(np.uint8))
 
 # ---------- carton de fin ----------
-LOGO = Image.open(S + '/assets/index.html_0.jpeg').convert('RGB')
+LOGO = Image.open(ROOT + '/logo/brico-cash-fameck.jpg').convert('RGB')
 
 def logo_card(width=780):
     lw = width - 60
