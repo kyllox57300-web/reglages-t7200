@@ -48,7 +48,7 @@ et les couleurs (bleu et jaune, noir et jaune, orange). À garder.
 Les autres bandeaux (Arrivage, Prix choc…) et le modèle « Arrivages de la charte » ont été retirés : ne pas les remettre sans demande.
 
 ## Photos SAV (`sav/`)
-- **Uniquement des photos du produit et un n° de dossier** : jamais de nom, téléphone, adresse ni note libre (demande explicite).
+- **Seulement des photos (produit, ticket de caisse) et un n° de dossier** : jamais de nom ni de téléphone du client, ni note libre (demande explicite).
 - Pas de compte : un **code secret du magasin** `SAV-` + 12 caractères, créé sur le PC du SAV et mémorisé sur chaque appareil
   (les téléphones le reçoivent en scannant le QR « Relier un téléphone » ou la feuille A4 « Imprimer la feuille pour les vendeurs », via `#c=` dans l'adresse). Le code n'est jamais dans le dépôt.
 - Données : `sav/{code}/dossiers/{id}` (`dossier`, `count`, `ready`, `saved`, `created`) et `…/photos/{n}` (`n`, `data` en base64, < 1 Mo).

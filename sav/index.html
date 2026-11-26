@@ -2435,7 +2435,7 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px soli
     <!-- ===== Téléphone : envoyer ===== -->
     <form class="card" id="send" autocomplete="off" style="margin-top:14px">
       <label>N° de dossier SAV<small>juste le numéro : jamais le nom ni le téléphone du client</small><input type="text" id="dossier" maxlength="20" required placeholder="ex. 12345" inputmode="text" autocapitalize="characters"></label>
-      <p class="note">🔒 Seulement des photos du produit. Ne photographie pas de ticket, facture ou papier avec le nom, l'adresse ou le téléphone du client.</p>
+      <p class="note">🔒 Photos du produit et du ticket de caisse : OK. Mais jamais de nom ni de téléphone du client (sur une facture ou un papier, cache-les avec la main).</p>
       <div class="row2">
         <button type="button" class="btn ghost" id="camBtn">📷 Prendre une photo</button>
         <button type="button" class="btn ghost" id="galBtn">🖼️ Galerie</button>
@@ -2481,9 +2481,9 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px soli
   <ol>
     <li><span>Scanne ce QR code avec l'appareil photo de ton téléphone (<b>une seule fois</b> : ensuite, ton téléphone est relié).</span></li>
     <li><span>Tape le <b>n° de dossier SAV</b>.</span></li>
-    <li><span>Prends les <b>photos du produit</b> et appuie sur <b>Envoyer</b> : le PC du SAV les reçoit tout seul.</span></li>
+    <li><span>Prends les <b>photos du produit</b> (et du ticket si besoin) et appuie sur <b>Envoyer</b> : le PC du SAV les reçoit tout seul.</span></li>
   </ol>
-  <div class="s-lock">🔒 Seulement des photos du produit : jamais de ticket, de facture, de nom ou de téléphone du client.</div>
+  <div class="s-lock">🔒 Photos du produit et du ticket : OK. Jamais de nom ni de téléphone du client.</div>
   <div class="s-foot"><span>À garder côté équipe : ne pas afficher côté clients</span><span id="sheetCode"></span></div>
 </div>
 
