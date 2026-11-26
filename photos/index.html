@@ -247,32 +247,47 @@ function paint(ctx, p, W, H){
     bottom = H - blockH - 20 * u;
   }
 
-  // Étiquette jaune inclinée, au-dessus de la phrase
+  // Taille de la pastille prix (mesurée avant l'étiquette, pour qu'elles ne se chevauchent pas)
+  const n = parseFloat(String(p.price).replace(/\s/g, "").replace(",", "."));
+  let pm = null;
+  if(!isNaN(n) && n > 0){
+    const [e, c] = n.toFixed(2).split("."), big = 120 * u, small = 50 * u;
+    ctx.font = `${big}px "Archivo Black", "Arial Black", Arial, sans-serif`; const ew = ctx.measureText(e).width;
+    ctx.font = `${small}px "Archivo Black", "Arial Black", Arial, sans-serif`; const cw = Math.max(ctx.measureText("€").width, ctx.measureText(c).width);
+    const unitTxt = p.unit ? p.unit.toUpperCase() : "";
+    ctx.font = `800 ${30 * u}px Archivo, Arial, sans-serif`; const uw = unitTxt ? ctx.measureText(unitTxt).width : 0;
+    pm = {e, c, ew, cw, big, small, unitTxt, bw: Math.max(ew + cw + 64 * u, uw + 48 * u), bh: 150 * u + (unitTxt ? 40 * u : 0)};
+  }
+  let priceBottom = bottom;
+
+  // Étiquette inclinée, au-dessus de la phrase : elle rétrécit pour laisser la place au prix ;
+  // si ça ne suffit pas, le prix passe au-dessus de l'étiquette
   if(p.tag){
     ctx.save();
-    ctx.font = `${78 * u}px "Archivo Black", "Arial Black", Arial, sans-serif`;
-    const tw = ctx.measureText(p.tag).width, bw = tw + 70 * u, bh = 112 * u;
+    let fs = 78 * u;
+    ctx.font = `${fs}px "Archivo Black", "Arial Black", Arial, sans-serif`;
+    let tw = ctx.measureText(p.tag).width;
+    const room = W - 48 * u - (pm ? pm.bw + 44 * u + 26 * u : 48 * u);
+    if(tw + 70 * u > room){
+      fs *= Math.max(0.62, (room - 70 * u) / tw);
+      ctx.font = `${fs}px "Archivo Black", "Arial Black", Arial, sans-serif`; tw = ctx.measureText(p.tag).width;
+    }
+    const bw = tw + 70 * u * fs / (78 * u), bh = 112 * u * fs / (78 * u);
+    if(pm && bw > room) priceBottom = bottom - bh - 34 * u;
     ctx.translate(48 * u, bottom - bh); ctx.rotate(-4 * Math.PI / 180);
     ctx.shadowColor = "rgba(0,0,0,.3)"; ctx.shadowBlur = 20 * u; ctx.shadowOffsetY = 6 * u;
     const bfTag = isDark(p.tag);
     ctx.fillStyle = bfTag ? "#111111" : "#fab61f"; rrect(ctx, 0, 0, bw, bh, 10 * u); ctx.fill();
     ctx.shadowColor = "transparent";
-    ctx.fillStyle = bfTag ? "#fab61f" : "#075a93"; ctx.textBaseline = "middle"; ctx.fillText(p.tag, 35 * u, bh / 2 + 4 * u);
+    ctx.fillStyle = bfTag ? "#fab61f" : "#075a93"; ctx.textBaseline = "middle"; ctx.fillText(p.tag, (bw - tw) / 2, bh / 2 + 4 * u * fs / (78 * u));
     ctx.restore();
   }
 
   // Prix en pastille, en bas à droite (facultatif)
-  const n = parseFloat(String(p.price).replace(/\s/g, "").replace(",", "."));
-  if(!isNaN(n) && n > 0){
-    const [e, c] = n.toFixed(2).split(".");
+  if(pm){
+    const {e, c, ew, cw, big, small, unitTxt, bw, bh} = pm;
     ctx.save();
-    const big = 120 * u, small = 50 * u;
-    ctx.font = `${big}px "Archivo Black", "Arial Black", Arial, sans-serif`; const ew = ctx.measureText(e).width;
-    ctx.font = `${small}px "Archivo Black", "Arial Black", Arial, sans-serif`; const cw = Math.max(ctx.measureText("€").width, ctx.measureText(c).width);
-    const unitTxt = p.unit ? p.unit.toUpperCase() : "";
-    ctx.font = `800 ${30 * u}px Archivo, Arial, sans-serif`; const uw = unitTxt ? ctx.measureText(unitTxt).width : 0;
-    const bw = Math.max(ew + cw + 64 * u, uw + 48 * u), bh = 150 * u + (unitTxt ? 40 * u : 0);
-    const x = W - bw - 44 * u, y = bottom - bh + 4 * u;
+    const x = W - bw - 44 * u, y = priceBottom - bh + 4 * u;
     ctx.translate(x + bw / 2, y + bh / 2); ctx.rotate(3 * Math.PI / 180); ctx.translate(-bw / 2, -bh / 2);
     ctx.shadowColor = "rgba(0,0,0,.3)"; ctx.shadowBlur = 20 * u; ctx.shadowOffsetY = 6 * u;
     ctx.fillStyle = "#fff"; rrect(ctx, 0, 0, bw, bh, 22 * u); ctx.fill(); ctx.shadowColor = "transparent";
