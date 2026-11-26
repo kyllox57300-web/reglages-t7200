@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Un groupe = un code secret (NOEL-XXXXXXXX). Qui connaît le code peut lire et écrire dans ce groupe.
+    match /groups/{code}/{coll}/{id} {
+      allow read, write: if code.matches('NOEL-[A-Z0-9]{8}')
+                         && coll in ['people', 'tickets', 'photos', 'dishes'];
+    }
+    // Photos SAV du magasin : code secret SAV-XXXXXXXXXXXX ; seulement un n° de dossier et des photos
+    match /sav/{code}/dossiers/{id} {
+      allow read, delete: if code.matches('SAV-[A-Z0-9]{12}');
+      allow create, update: if code.matches('SAV-[A-Z0-9]{12}')
+        && request.resource.data.keys().hasOnly(['dossier', 'count', 'ready', 'saved', 'created'])
+        && request.resource.data.dossier is string && request.resource.data.dossier.size() <= 20;
+      match /photos/{n} {
+        allow read, delete: if code.matches('SAV-[A-Z0-9]{12}');
+        allow create: if code.matches('SAV-[A-Z0-9]{12}')
+          && request.resource.data.keys().hasOnly(['n', 'data'])
+          && request.resource.data.data is string && request.resource.data.data.size() < 1000000;
+      }
+    }
+  }
+}

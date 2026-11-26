@@ -13,7 +13,7 @@ pour pouvoir aussi être copié sur le serveur du magasin et marcher sans Intern
 | `photos/` | Photos Facebook (habillage d'une photo de rayon, partage téléphone / enregistrement PC) |
 | `qr/` | Feuilles QR à poser en rayon (mémorisées avec leur date d'impression dans la liste, pas sur la feuille ; réimpression ; toujours imprimées sur A4 : A5 = 2 par feuille, A6 = 4) |
 | `calcul/` | Calculateurs clients (calcul simple au m², lino — rouleaux de 1 à 4 m, choisis par le client ou conseillés, un seul QR —, peinture, BA13, béton…) |
-| `sav/` | Photos SAV : le téléphone envoie les photos d'un n° de dossier, le PC les reçoit, les enregistre puis les supprime (Firebase du propriétaire : connexion e-mail + Firestore, collection `sav`) |
+| `sav/` | Photos SAV : le téléphone envoie les photos d'un n° de dossier, le PC les reçoit, les enregistre puis les supprime (Firebase du propriétaire, projet `depenses-noel` partagé avec l'appli « dépenses de Noël » : Firestore + code secret du magasin) |
 | `t7200/` | Réglages Epson SureColor T7200 (`bache.ssf`, `adhesif.ssf`) |
 
 L'outil **Affiches prix cuisine** n'est **pas** ici : il reste sur le serveur du magasin, que l'équipe met à jour.
@@ -49,9 +49,11 @@ Les autres bandeaux (Arrivage, Prix choc…) et le modèle « Arrivages de la ch
 
 ## Photos SAV (`sav/`)
 - **Uniquement des photos du produit et un n° de dossier** : jamais de nom, téléphone, adresse ni note libre (demande explicite).
-  Les règles Firestore limitent les champs (`dossier`, `count`, `ready`, `saved`, `created` ; photos : `n`, `data`).
-- Photos réduites (≈ 1600 px, < 900 Ko) stockées en base64 dans `sav/{id}/photos/{n}` : pas de Cloud Storage (payant).
-- Le bloc `firebaseConfig` est intégré au build (`sav.config.json` dans le dossier de travail) ; il n'est pas secret.
+- Pas de compte : un **code secret du magasin** `SAV-` + 12 caractères, créé sur le PC du SAV et mémorisé sur chaque appareil
+  (les téléphones le reçoivent en scannant le QR « Relier un téléphone », via `#c=` dans l'adresse). Le code n'est jamais dans le dépôt.
+- Données : `sav/{code}/dossiers/{id}` (`dossier`, `count`, `ready`, `saved`, `created`) et `…/photos/{n}` (`n`, `data` en base64, < 1 Mo).
+  Règles à publier dans la console : `sav/firestore.rules` (garde aussi les règles de l'appli Noël, même projet).
+- Photos réduites (≈ 1600 px, < 900 Ko) : pas de Cloud Storage (payant). Le `firebaseConfig` (non secret) est intégré au build.
 
 ## T7200
 Réglages validés : bâche intissée 1000 mm = Enhanced Matte Paper ; adhésif Folex SIVC 914 mm = Premium Glossy Photo Paper ;
