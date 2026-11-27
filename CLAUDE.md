@@ -9,7 +9,7 @@ pour pouvoir aussi être copié sur le serveur du magasin et marcher sans Intern
 | `/` | Page d'accueil, outils rangés par usage |
 | `affiches/` | Affiches grand format (export Excel ou à la main, remise %, tête de gondole, PDF A4 → A0) |
 | `panneaux/` | Panneaux magasin (modèles + « Mes modèles » mémorisés sur le PC ; A4, A3, A0, bandeau de rack 280 × 100) |
-| `etiquettes/` | Étiquettes de bacs bleues (pictogramme Lucide ou photo, logo en haut à droite ou au milieu, taille d'écriture au choix, bouton Dupliquer, flèche ⬆ ⬇ facultative par étiquette (bande jaune à gauche, flèche bleue), planches A4 ; bandeau 287 × 60 mm en A4 paysage) |
+| `etiquettes/` | Étiquettes de bacs au bleu de la charte #0078bf (pictogramme Lucide ou photo, logo en haut à droite ou au milieu, taille d'écriture au choix, bouton Dupliquer, flèche ⬆ ⬇ facultative par étiquette (bande jaune à gauche, flèche bleue), planches A4 ; bandeau 287 × 60 mm en A4 paysage) |
 | `photos/` | Photos Facebook (habillage d'une photo de rayon, partage téléphone / enregistrement PC) |
 | `qr/` | Feuilles QR à poser en rayon (mémorisées avec leur date d'impression dans la liste, pas sur la feuille ; réimpression ; toujours imprimées sur A4 : A5 = 2 par feuille, A6 = 4) |
 | `calcul/` | Calculateurs clients (calcul simple au m², lino — rouleaux de 1 à 4 m, choisis par le client ou conseillés, un seul QR —, peinture, BA13, béton…) |
