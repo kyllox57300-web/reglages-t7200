@@ -54,7 +54,8 @@ Les autres bandeaux (Arrivage, Prix choc…) et le modèle « Arrivages de la ch
 - Données : `sav/{code}/dossiers/{id}` (`dossier`, `count`, `ready`, `saved`, `created`) et `…/photos/{n}` (`n`, `data` en base64, < 1 Mo).
   Règles à publier dans la console : `sav/firestore.rules` (garde aussi les règles de l'appli Noël, même projet).
 - Photos réduites (≈ 1600 px, < 900 Ko) : pas de Cloud Storage (payant). Le `firebaseConfig` (non secret) est intégré au build.
-- **Scanner** (onglet « 📄 Scanner ») : bords de la feuille trouvés tout seuls (Otsu + plus grande tache claire + coins extrêmes),
+- **Scanner** (onglet « 📄 Scanner ») : bords de la feuille trouvés tout seuls (plusieurs zones candidates : claire / depuis le centre jusqu'aux contours /
+  couleur proche de la feuille ; enveloppe convexe réduite à 4 coins ; la plus plausible gagne),
   coins déplaçables au doigt, redressement (homographie), nettoyage du fond (noir et blanc par défaut). Les pages partent
   comme des photos avec `dossier` = « DOC:nom » (mêmes règles Firestore) ; le PC en fait un **PDF A4** (jsPDF).
 

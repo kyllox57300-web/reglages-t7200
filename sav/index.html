@@ -3110,34 +3110,91 @@ async function loadCanvas(file, max){
   c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
   c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); return c;
 }
-/* Bords : image réduite en gris, seuil d'Otsu, plus grande tache claire, puis ses 4 coins extrêmes */
+/* Bords : plusieurs méthodes sur une image réduite, on garde la feuille la plus plausible.
+   1) zone claire (seuil d'Otsu) ; 2) zone qui part du centre et s'arrête aux contours (marche sur fond clair).
+   Chaque zone → trous bouchés → enveloppe convexe → réduite à 4 coins → note (remplissage, angles, taille). */
 function detectQuad(src){
-  const s = Math.min(1, 500 / Math.max(src.width, src.height)), w = Math.round(src.width * s), h = Math.round(src.height * s);
+  const s = Math.min(1, 360 / Math.max(src.width, src.height)), w = Math.round(src.width * s), h = Math.round(src.height * s), N = w * h;
   const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d"); x.drawImage(src, 0, 0, w, h);
-  const d = x.getImageData(0, 0, w, h).data, g = new Uint8Array(w * h), hist = new Array(256).fill(0);
-  for(let i = 0; i < w * h; i++){ const v = (d[i * 4] * 299 + d[i * 4 + 1] * 587 + d[i * 4 + 2] * 114) / 1000 | 0; g[i] = v; hist[v]++; }
+  const d = x.getImageData(0, 0, w, h).data; let g = new Float32Array(N);
+  for(let i = 0; i < N; i++) g[i] = d[i * 4] * .299 + d[i * 4 + 1] * .587 + d[i * 4 + 2] * .114;
+  const blur = a => { const o = new Float32Array(N), t = new Float32Array(N);
+    for(let y = 0; y < h; y++) for(let xx = 0; xx < w; xx++){ let s2 = 0, n = 0; for(let k = -2; k <= 2; k++){ const q = xx + k; if(q >= 0 && q < w){ s2 += a[y * w + q]; n++; } } t[y * w + xx] = s2 / n; }
+    for(let y = 0; y < h; y++) for(let xx = 0; xx < w; xx++){ let s2 = 0, n = 0; for(let k = -2; k <= 2; k++){ const q = y + k; if(q >= 0 && q < h){ s2 += t[q * w + xx]; n++; } } o[y * w + xx] = s2 / n; }
+    return o; };
+  g = blur(g);
+  // contours (Sobel) sur une image encore plus floue : le texte disparaît, le bord de la feuille reste
+  const gb = blur(blur(g)), gm = new Float32Array(N);
+  for(let y = 1; y < h - 1; y++) for(let xx = 1; xx < w - 1; xx++){ const i = y * w + xx;
+    const gx = gb[i - w + 1] + 2 * gb[i + 1] + gb[i + w + 1] - gb[i - w - 1] - 2 * gb[i - 1] - gb[i + w - 1];
+    const gy = gb[i + w - 1] + 2 * gb[i + w] + gb[i + w + 1] - gb[i - w - 1] - 2 * gb[i - w] - gb[i - w + 1];
+    gm[i] = Math.hypot(gx, gy); }
+  const masks = [];
+  // 1) zone claire
+  const hist = new Array(256).fill(0); for(let i = 0; i < N; i++) hist[Math.min(255, g[i] | 0)]++;
   let sum = 0; for(let i = 0; i < 256; i++) sum += i * hist[i];
   let sB = 0, wB = 0, best = 0, t = 128;
-  for(let i = 0; i < 256; i++){ wB += hist[i]; if(!wB) continue; const wF = w * h - wB; if(!wF) break; sB += i * hist[i];
+  for(let i = 0; i < 256; i++){ wB += hist[i]; if(!wB) continue; const wF = N - wB; if(!wF) break; sB += i * hist[i];
     const mB = sB / wB, mF = (sum - sB) / wF, v = wB * wF * (mB - mF) * (mB - mF); if(v > best){ best = v; t = i; } }
-  const lab = new Int32Array(w * h).fill(-1), stack = new Int32Array(w * h); let bestN = 0, bestId = -1, id = 0;
-  for(let i = 0; i < w * h; i++){
-    if(g[i] <= t || lab[i] >= 0) continue;
-    let n = 0, sp = 0; stack[sp++] = i; lab[i] = id;
-    while(sp){ const p = stack[--sp]; n++; const px = p % w, py = (p / w) | 0;
-      if(px > 0 && lab[p - 1] < 0 && g[p - 1] > t){ lab[p - 1] = id; stack[sp++] = p - 1; }
-      if(px < w - 1 && lab[p + 1] < 0 && g[p + 1] > t){ lab[p + 1] = id; stack[sp++] = p + 1; }
-      if(py > 0 && lab[p - w] < 0 && g[p - w] > t){ lab[p - w] = id; stack[sp++] = p - w; }
-      if(py < h - 1 && lab[p + w] < 0 && g[p + w] > t){ lab[p + w] = id; stack[sp++] = p + w; } }
-    if(n > bestN){ bestN = n; bestId = id; } id++;
-  }
+  masks.push(largest(i => g[i] > t));
+  // 2) depuis le centre, arrêt aux contours (plusieurs sensibilités)
+  const sorted = Float32Array.from(gm).sort(), pct = p => sorted[Math.floor(N * p)];
+  const cx = w >> 1, cy = h >> 1, cv = [];
+  for(let y = cy - (h >> 4); y <= cy + (h >> 4); y++) for(let xx = cx - (w >> 4); xx <= cx + (w >> 4); xx++) cv.push(g[y * w + xx]);
+  cv.sort((a, b) => a - b); const seedV = cv[Math.floor(cv.length * .75)];
+  for(const p of [.7, .8, .88, .94]){ const T = Math.max(4, pct(p)); masks.push(grow(i => gm[i] < T && g[i] > seedV * .6)); }
+  // 3) depuis le centre, couleur proche de la feuille (fond clair mais un peu différent)
+  const Tmax = Math.max(6, pct(.97));
+  for(const tol of [.05, .09, .14, .2]) masks.push(grow(i => Math.abs(g[i] - seedV) < tol * seedV && gm[i] < Tmax));
+  // note de chaque candidat
+  let bestQ = null, bestScore = -1;
+  for(const m of masks){ if(!m) continue; const r = quadOf(m); if(r && r.score > bestScore){ bestScore = r.score; bestQ = r.q; } }
   const inset = (a, b) => [[a, b], [src.width - a, b], [src.width - a, src.height - b], [a, src.height - b]];
-  if(bestN < w * h * 0.12) return inset(src.width * .05, src.height * .05);
-  let tl, tr, br, bl, a = Infinity, b = -Infinity, cc = -Infinity, dd = Infinity;
-  for(let i = 0; i < w * h; i++){ if(lab[i] !== bestId) continue; const px = i % w, py = (i / w) | 0;
-    if(px + py < a){ a = px + py; tl = [px, py]; } if(px + py > b){ b = px + py; br = [px, py]; }
-    if(px - py > cc){ cc = px - py; tr = [px, py]; } if(px - py < dd){ dd = px - py; bl = [px, py]; } }
-  return [tl, tr, br, bl].map(([px, py]) => [(px + .5) / s, (py + .5) / s]);
+  if(!bestQ || bestScore < .55) return inset(src.width * .05, src.height * .05);
+  return bestQ.map(([px, py]) => [Math.min(src.width, Math.max(0, (px + .5) / s)), Math.min(src.height, Math.max(0, (py + .5) / s))]);
+
+  function largest(ok){ const lab = new Int32Array(N).fill(-1), st = new Int32Array(N); let bn = 0, bid = -1, id = 0;
+    for(let i = 0; i < N; i++){ if(lab[i] >= 0 || !ok(i)) continue; let n = 0, sp = 0; st[sp++] = i; lab[i] = id;
+      while(sp){ const p = st[--sp]; n++; for(const q of nb(p)) if(q >= 0 && lab[q] < 0 && ok(q)){ lab[q] = id; st[sp++] = q; } }
+      if(n > bn){ bn = n; bid = id; } id++; }
+    if(bid < 0) return null; const m = new Uint8Array(N); for(let i = 0; i < N; i++) m[i] = lab[i] === bid ? 1 : 0; return m; }
+  function grow(ok){ const m = new Uint8Array(N), st = new Int32Array(N); let sp = 0;
+    for(let y = cy - (h >> 4); y <= cy + (h >> 4); y++) for(let xx = cx - (w >> 4); xx <= cx + (w >> 4); xx++){ const i = y * w + xx; if(ok(i) && !m[i]){ m[i] = 1; st[sp++] = i; } }
+    while(sp){ const p = st[--sp]; for(const q of nb(p)) if(q >= 0 && !m[q] && ok(q)){ m[q] = 1; st[sp++] = q; } }
+    return m; }
+  function nb(p){ const px = p % w; return [px > 0 ? p - 1 : -1, px < w - 1 ? p + 1 : -1, p >= w ? p - w : -1, p < N - w ? p + w : -1]; }
+  function quadOf(m){
+    // trous bouchés (le texte) : tout ce qui n'est pas joignable depuis le bord fait partie de la feuille
+    const out = new Uint8Array(N), st = new Int32Array(N); let sp = 0;
+    const push = i => { if(!m[i] && !out[i]){ out[i] = 1; st[sp++] = i; } };
+    for(let xx = 0; xx < w; xx++){ push(xx); push(N - w + xx); } for(let y = 0; y < h; y++){ push(y * w); push(y * w + w - 1); }
+    while(sp){ const p = st[--sp]; for(const q of nb(p)) if(q >= 0) push(q); }
+    let area = 0; const pts = [];
+    for(let i = 0; i < N; i++) if(!out[i]){ area++; const px = i % w, py = (i / w) | 0;
+      if(px === 0 || py === 0 || px === w - 1 || py === h - 1 || out[i - 1] || out[i + 1] || out[i - w] || out[i + w]) pts.push([px, py]); }
+    if(area < N * .04 || pts.length < 4) return null;
+    // enveloppe convexe puis 4 coins (on retire le sommet qui fait perdre le moins de surface)
+    pts.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], up = [];
+    for(const p of pts){ while(lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
+    for(let i = pts.length - 1; i >= 0; i--){ const p = pts[i]; while(up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); }
+    let hull = lo.slice(0, -1).concat(up.slice(0, -1)); if(hull.length < 4) return null;
+    while(hull.length > 4){ let bi = 0, ba = Infinity;
+      for(let i = 0; i < hull.length; i++){ const a = hull[(i + hull.length - 1) % hull.length], b = hull[i], cc = hull[(i + 1) % hull.length], ar = Math.abs(cr(a, b, cc)); if(ar < ba){ ba = ar; bi = i; } }
+      hull.splice(bi, 1); }
+    // ordre : haut-gauche, haut-droite, bas-droite, bas-gauche
+    const ctr = hull.reduce((a, p) => [a[0] + p[0] / 4, a[1] + p[1] / 4], [0, 0]);
+    hull.sort((a, b) => Math.atan2(a[1] - ctr[1], a[0] - ctr[0]) - Math.atan2(b[1] - ctr[1], b[0] - ctr[0]));
+    let k0 = 0; hull.forEach((p, i) => { if(p[0] + p[1] < hull[k0][0] + hull[k0][1]) k0 = i; });
+    const q = [0, 1, 2, 3].map(i => hull[(k0 + i) % 4]);
+    let qa = 0; for(let i = 0; i < 4; i++){ const a = q[i], b = q[(i + 1) % 4]; qa += a[0] * b[1] - b[0] * a[1]; } qa = Math.abs(qa) / 2;
+    const frac = qa / N; if(frac < .04 || frac > .97) return null;
+    for(let i = 0; i < 4; i++){ const a = q[(i + 3) % 4], b = q[i], cc = q[(i + 1) % 4];
+      const v1 = [a[0] - b[0], a[1] - b[1]], v2 = [cc[0] - b[0], cc[1] - b[1]], cos = (v1[0] * v2[0] + v1[1] * v2[1]) / (Math.hypot(...v1) * Math.hypot(...v2) || 1);
+      if(Math.abs(cos) > .5) return null; }   // angles entre 60° et 120°
+    const fill = Math.min(1, area / qa);
+    return {q, fill: +fill.toFixed(3), frac: +frac.toFixed(3), score: fill * .8 + Math.min(frac, .7) * .3};
+  }
 }
 /* Redressement : homographie du rectangle de sortie vers les 4 coins, échantillonnage bilinéaire */
 function homography(q, W, H){
