@@ -53,6 +53,8 @@ Les autres bandeaux (Arrivage, Prix choc…) et le modèle « Arrivages de la ch
   (les téléphones le reçoivent en scannant le QR « Relier un téléphone » ou la feuille A4 « Imprimer la feuille pour les vendeurs », via `#c=` dans l'adresse). Le code n'est jamais dans le dépôt.
 - Données : `sav/{code}/dossiers/{id}` (`dossier`, `count`, `ready`, `saved`, `created`) et `…/photos/{n}` (`n`, `data` en base64, < 1 Mo).
   Règles à publier dans la console : `sav/firestore.rules` (garde aussi les règles de l'appli Noël, même projet).
+- **Caméra dans la page** (getUserMedia, ImageCapture si dispo) : Chrome sur Android ferme parfois la page quand l'appareil photo
+  du téléphone s'ouvre (photo perdue au retour). Repli sur l'appareil photo du téléphone si la caméra est refusée.
 - Photos réduites (≈ 1600 px, < 900 Ko) : pas de Cloud Storage (payant). Le `firebaseConfig` (non secret) est intégré au build.
 - **Scanner** (onglet « 📄 Scanner ») : bords de la feuille trouvés tout seuls (plusieurs zones candidates : claire / depuis le centre jusqu'aux contours /
   couleur proche de la feuille ; enveloppe convexe réduite à 4 coins ; la plus plausible gagne),

@@ -2808,6 +2808,16 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px soli
 .thumbs.pages figure{aspect-ratio:.71;background:#fff;border:1px solid var(--line)}
 .thumbs.pages img{object-fit:contain}
 .dos .tag.doc{background:#e7f1fa;color:var(--bleu-f)}
+.cam{position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column}
+.cam video{flex:1;min-height:0;width:100%;object-fit:contain;background:#000}
+.cam-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .25s}
+.cam-flash.on{opacity:.8;transition:none}
+.cam-bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:18px 16px max(22px,env(safe-area-inset-bottom,0px));background:#000}
+.cam-x{all:unset;justify-self:start;color:#fff;font-weight:700;padding:10px 14px;border:1.5px solid #fff;border-radius:10px;cursor:pointer}
+.cam-shot{all:unset;width:72px;height:72px;border-radius:50%;background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.35);cursor:pointer}
+.cam-shot:active{transform:scale(.92)}
+.cam-shot:disabled{opacity:.5}
+.cam-n{justify-self:end;color:#fff;font-weight:700}
 .dirline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 </style>
 </head>
@@ -2898,6 +2908,17 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px soli
       <p class="status" id="recvStatus" role="status">Connexion…</p>
       <div class="list" id="list"></div>
     </div>
+  </div>
+</div>
+
+<!-- Caméra dans la page : on ne quitte jamais l'outil (Chrome sur Android ferme parfois la page quand l'appareil photo s'ouvre) -->
+<div class="cam" id="camBox" hidden role="dialog" aria-label="Appareil photo">
+  <video id="camVid" autoplay playsinline muted></video>
+  <div class="cam-flash" id="camFlash"></div>
+  <div class="cam-bar">
+    <button type="button" class="cam-x" id="camClose">✓ Terminé</button>
+    <button type="button" class="cam-shot" id="camShot" aria-label="Prendre la photo"></button>
+    <span class="cam-n" id="camN"></span>
   </div>
 </div>
 
@@ -3026,16 +3047,54 @@ $("tRecv").addEventListener("click", () => setMode("recv"));
 $("tScan").addEventListener("click", () => setMode("scan"));
 
 /* ===== Téléphone : photos réduites (≈ 1600 px, moins de 900 Ko chacune) ===== */
-$("camBtn").addEventListener("click", () => $("cam").click());
+/* Caméra dans la page (getUserMedia) ; si elle est refusée, on retombe sur l'appareil photo du téléphone */
+let camStream = null, camTarget = null, camFallback = false;
+const canCam = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !camFallback;
+async function openCam(target){
+  camTarget = target;
+  try{ camStream = await navigator.mediaDevices.getUserMedia({audio: false, video: {facingMode: {ideal: "environment"}, width: {ideal: 2560}, height: {ideal: 1440}}}); }
+  catch(e){ camFallback = true; return false; }
+  $("camVid").srcObject = camStream; $("camBox").hidden = false; document.body.style.overflow = "hidden"; updCamN(); return true;
+}
+function closeCam(){
+  if(camStream) camStream.getTracks().forEach(t => t.stop()); camStream = null;
+  $("camVid").srcObject = null; $("camBox").hidden = true; document.body.style.overflow = "";
+}
+function updCamN(){ $("camN").textContent = camTarget === "send" ? (pics.length ? `${pics.length} photo${pics.length > 1 ? "s" : ""}` : "") : "Page " + (pages.length + 1); }
+async function grab(){
+  const v = $("camVid"), track = camStream.getVideoTracks()[0];
+  if(window.ImageCapture){ try{ const b = await new ImageCapture(track).takePhoto(); if(b && b.size) return b; }catch(e){} }
+  const c = document.createElement("canvas"); c.width = v.videoWidth; c.height = v.videoHeight; c.getContext("2d").drawImage(v, 0, 0);
+  return await new Promise(r => c.toBlob(r, "image/jpeg", .92));
+}
+$("camShot").addEventListener("click", async () => {
+  if(!camStream) return; const btn = $("camShot"); btn.disabled = true;
+  $("camFlash").classList.add("on"); setTimeout(() => $("camFlash").classList.remove("on"), 60);
+  try{
+    const b = await grab();
+    if(camTarget === "send"){ await addFiles([b]); updCamN(); if(pics.length >= MAXP) closeCam(); }
+    else { closeCam(); await scanFile(b); }
+  }finally{ btn.disabled = false; }
+});
+$("camClose").addEventListener("click", closeCam);
+const camNote = id => { const st = $(id); st.className = "status err"; st.textContent = "La caméra n'a pas pu s'ouvrir dans la page (autorisation refusée ?). Appuie encore une fois : l'appareil photo du téléphone va s'ouvrir."; };
+$("camBtn").addEventListener("click", async () => { if(canCam()){ if(!(await openCam("send"))) camNote("sendStatus"); } else $("cam").click(); });
 $("galBtn").addEventListener("click", () => $("gal").click());
-async function shrink(file){
+/* Lecture d'une image : <img>, sinon createImageBitmap (certains téléphones Android) */
+async function decodeImg(file){
   const url = URL.createObjectURL(file), img = new Image();
-  try{ img.src = url; await img.decode(); } finally{ URL.revokeObjectURL(url); }
+  try{ img.src = url; await img.decode(); return img; }
+  catch(e){ const bm = await createImageBitmap(file); return {naturalWidth: bm.width, naturalHeight: bm.height, bm}; }
+  finally{ setTimeout(() => URL.revokeObjectURL(url), 1000); }
+}
+const drawable = im => im.bm || im;
+async function shrink(file){
+  const img = await decodeImg(file);
   let max = 1600, q = 0.8, out = "";
   for(let i = 0; i < 8; i++){
     const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
     const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
-    const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+    const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(drawable(img), 0, 0, c.width, c.height);
     out = c.toDataURL("image/jpeg", q);
     if(out.length < 900000) break;
     max = Math.round(max * 0.8); q = Math.max(0.6, q - 0.05);
@@ -3045,13 +3104,16 @@ async function shrink(file){
 async function addFiles(files){
   const st = $("sendStatus"); st.className = "status";
   for(const f of files){
-    if(!f.type.startsWith("image/")) continue;
+    if(f.type && !f.type.startsWith("image/")) continue;
     if(pics.length >= MAXP){ st.className = "status err"; st.textContent = `${MAXP} photos maximum par dossier.`; break; }
     try{ pics.push(await shrink(f)); }catch(e){ st.className = "status err"; st.textContent = "Une photo n'a pas pu être lue."; }
     drawPics();
   }
 }
 ["cam","gal"].forEach(id => $(id).addEventListener("change", e => { const f = [...e.target.files]; e.target.value = ""; addFiles(f); }));
+// Si Chrome recharge la page (retour de l'appareil photo), le n° de dossier tapé n'est pas perdu
+try{ $("dossier").value = sessionStorage.getItem("sav-dossier") || ""; }catch(e){}
+$("dossier").addEventListener("input", () => { try{ sessionStorage.setItem("sav-dossier", $("dossier").value); }catch(e){} });
 function drawPics(){
   const box = $("pics"); box.innerHTML = "";
   pics.forEach((src, i) => {
@@ -3079,7 +3141,7 @@ $("send").addEventListener("submit", async e => {
   try{
     await B.send(CODE, {dossier}, pics, k => { fill.style.width = Math.round(k / n * 100) + "%"; st.textContent = `Envoi : ${k} / ${n}`; });
     st.className = "status ok"; st.textContent = `✔ Envoyé : ${n} photo${n > 1 ? "s" : ""} pour le dossier « ${dossier} ».`;
-    pics = []; drawPics(); $("dossier").value = "";
+    pics = []; drawPics(); $("dossier").value = ""; try{ sessionStorage.removeItem("sav-dossier"); }catch(e){}
   }catch(err){ st.className = "status err"; st.textContent = errText(err) + " Les photos sont gardées : réessaie."; $("sendBtn").disabled = false; }
   finally{ setTimeout(() => { bar.hidden = true; fill.style.width = "0"; }, 800); }
 });
@@ -3091,10 +3153,10 @@ $("send").addEventListener("submit", async e => {
 const DOC = "DOC:";
 let scanSrc = null, scanQuad = null, pages = [];
 const SC = {img: null, k: 1};
-$("scBtn").addEventListener("click", () => $("scCam").click());
+$("scBtn").addEventListener("click", async () => { if(canCam()){ if(!(await openCam("scan"))) camNote("scStatus"); } else $("scCam").click(); });
 $("scGalBtn").addEventListener("click", () => $("scGal").click());
-["scCam","scGal"].forEach(id => $(id).addEventListener("change", async e => {
-  const f = e.target.files[0]; e.target.value = ""; if(!f) return;
+["scCam","scGal"].forEach(id => $(id).addEventListener("change", e => { const f = e.target.files[0]; e.target.value = ""; if(f) scanFile(f); }));
+async function scanFile(f){
   const st = $("scStatus"); st.className = "status"; st.textContent = "Recherche des bords de la feuille…";
   try{
     scanSrc = await loadCanvas(f, 2400); scanQuad = detectQuad(scanSrc);
@@ -3102,13 +3164,12 @@ $("scGalBtn").addEventListener("click", () => $("scGal").click());
     st.textContent = "Vérifie les 4 coins (tu peux les déplacer au doigt), puis « Valider la page ».";
     $("scEdit").scrollIntoView({behavior: "smooth", block: "start"});
   }catch(err){ st.className = "status err"; st.textContent = "La photo n'a pas pu être lue."; }
-}));
+}
 async function loadCanvas(file, max){
-  const url = URL.createObjectURL(file), img = new Image();
-  try{ img.src = url; await img.decode(); } finally{ URL.revokeObjectURL(url); }
+  const img = await decodeImg(file);
   const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement("canvas");
   c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
-  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); return c;
+  c.getContext("2d").drawImage(drawable(img), 0, 0, c.width, c.height); return c;
 }
 /* Bords : plusieurs méthodes sur une image réduite, on garde la feuille la plus plausible.
    1) zone claire (seuil d'Otsu) ; 2) zone qui part du centre et s'arrête aux contours (marche sur fond clair).
